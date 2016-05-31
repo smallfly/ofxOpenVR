@@ -1,7 +1,7 @@
 ofxOpenVR (WIP)
 ====================
 
-Implementation of OpenVR API.
+Implementation of OpenVR API. This code is based on the hellovr_opengl example included in OpenVR.
 
 
 ## Notes
