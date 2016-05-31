@@ -316,7 +316,8 @@ bool ofxOpenVR::createAllShaders()
 //--------------------------------------------------------------
 bool ofxOpenVR::createFrameBuffer(int nWidth, int nHeight, FramebufferDesc &framebufferDesc)
 {
-
+	// Still using direct OpenGL calls to create the FBO as OF does not allow the create of GL_TEXTURE_2D_MULTISAMPLE texture.
+	
 	glGenFramebuffers(1, &framebufferDesc._nRenderFramebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, framebufferDesc._nRenderFramebufferId);
 
