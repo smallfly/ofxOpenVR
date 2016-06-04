@@ -22,22 +22,24 @@ std::string getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f){
+void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
+{
 	
 	// Store the user's callable render function 
 	_callableRenderFunction = f;
 
 	// Initialize vars
 	_bIsGLInit = false;
-	_pHMD=NULL;
-	_pRenderModels=NULL;
-	_bGlFinishHack=true;
-	_unLensVAO=0;
-	_iTrackedControllerCount=0;
-	_iTrackedControllerCount_Last=-1;
-	_iValidPoseCount=0;
-	_iValidPoseCount_Last=-1;
-	_strPoseClasses="";
+	_pHMD = NULL;
+	_pRenderModels = NULL;
+	_bGlFinishHack = true;
+	_unLensVAO = 0;
+	_iTrackedControllerCount = 0;
+	_iTrackedControllerCount_Last = -1;
+	_iValidPoseCount = 0;
+	_iValidPoseCount_Last = -1;
+	_strPoseClasses = "";
+	_bDrawControllers = false;
 
 	init();
 }
@@ -85,7 +87,8 @@ void ofxOpenVR::update(){
 }
 
 //--------------------------------------------------------------
-void ofxOpenVR::render(){
+void ofxOpenVR::render()
+{
 	bool bQuit = handleInput();
 
 	renderFrame();
@@ -137,8 +140,8 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 		matMVP = _mat4ProjectionRight * _mat4eyePosRight *  _mat4HMDPose;
 	}
 
-	ofMatrix4x4 matrixObj(matMVP.get());
-	return matrixObj;
+	ofMatrix4x4 matrix(matMVP.get());
+	return matrix;
 }
 
 //--------------------------------------------------------------
