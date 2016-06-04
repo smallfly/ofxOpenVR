@@ -8,6 +8,7 @@ void ofApp::setup(){
 
 	// We need to pass the method we want ofxOpenVR to call when rending the scene
 	_openVR.setup(std::bind(&ofApp::render, this, std::placeholders::_1));
+	_openVR.setDrawControllers(true);
 
 	_texture.load("of.png");
 	//_texture.getTextureReference().getTextureData().bFlipTexture = true;
@@ -68,13 +69,20 @@ void ofApp::setup(){
 }
 
 //--------------------------------------------------------------
-void ofApp::update(){
+void ofApp::exit() {
+	_openVR.exit();
+}
 
+//--------------------------------------------------------------
+void ofApp::update(){
+	_openVR.update();
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
 	_openVR.render();
+
+	_openVR.renderDistortion();
 
 	ofDrawBitmapStringHighlight(ofToString(ofGetFrameRate()), ofPoint(10.0f, 20.0f));
 }

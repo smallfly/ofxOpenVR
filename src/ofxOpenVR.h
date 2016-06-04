@@ -13,10 +13,15 @@ public:
 
 	void update();
 	void render();
+	void renderDistortion();
 
 	Matrix4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
 	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
+
+	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
+
+	void setDrawControllers(bool bDrawControllers);
 
 private:
 
@@ -86,8 +91,14 @@ private:
 	Matrix4 _mat4ProjectionLeft;
 	Matrix4 _mat4ProjectionRight;
 
-	ofVboMesh _controllerVbo;
-	ofShader _controllerTransformShader;
+	int _leftControllerDeviceID;
+	int _rightControllerDeviceID;
+	Matrix4 _mat4LeftControllerPose;
+	Matrix4 _mat4RightControllerPose;
+
+	bool _bDrawControllers;
+	ofVboMesh _controllersVbo;
+	ofShader _controllersTransformShader;
 
 	bool init();
 	bool initGL();
@@ -100,17 +111,14 @@ private:
 	void setupDistortion();
 	void setupCameras();
 
-	void updateHMDMatrixPose();
+	void updateDevicesMatrixPose();
 	bool handleInput();
 	void processVREvent(const vr::VREvent_t & event);
 
-	void renderFrame();
 	void renderStereoTargets();
 	
 	void drawControllers();
 	void renderScene(vr::Hmd_Eye nEye);
-
-	void renderDistortion();
 
 	Matrix4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);	
 };

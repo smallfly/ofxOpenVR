@@ -41,6 +41,9 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_strPoseClasses = "";
 	_bDrawControllers = false;
 
+	_controllersVbo.setMode(OF_PRIMITIVE_LINES);
+	_controllersVbo.disableTextures();
+
 	init();
 }
 
@@ -82,8 +85,24 @@ void ofxOpenVR::exit()
 
 
 //--------------------------------------------------------------
-void ofxOpenVR::update(){
-	
+void ofxOpenVR::update()
+{
+	// for now as fast as possible
+	if (_pHMD)
+	{
+		drawControllers();
+	}
+
+	// Spew out the controller and pose count whenever they change.
+	if (_iTrackedControllerCount != _iTrackedControllerCount_Last || _iValidPoseCount != _iValidPoseCount_Last)
+	{
+		_iValidPoseCount_Last = _iValidPoseCount;
+		_iTrackedControllerCount_Last = _iTrackedControllerCount;
+
+		printf("PoseCount:%d(%s) Controllers:%d\n", _iValidPoseCount, _strPoseClasses.c_str(), _iTrackedControllerCount);
+	}
+
+	updateDevicesMatrixPose();
 }
 
 //--------------------------------------------------------------
@@ -91,7 +110,25 @@ void ofxOpenVR::render()
 {
 	bool bQuit = handleInput();
 
-	renderFrame();
+	// for now as fast as possible
+	if (_pHMD)
+	{
+		renderStereoTargets(); 
+
+		vr::Texture_t leftEyeTexture = { (void*)leftEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+		vr::Texture_t rightEyeTexture = { (void*)rightEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+	}
+
+	if (_bGlFinishHack)
+	{
+		//$ HACKHACK. From gpuview profiling, it looks like there is a bug where two renders and a present
+		// happen right before and after the vsync causing all kinds of jittering issues. This glFinish()
+		// appears to clear that up. Temporary fix while I try to get nvidia to investigate this problem.
+		// 1/29/2014 mikesart
+		glFinish();
+	}
 }
 
 //--------------------------------------------------------------
@@ -142,6 +179,27 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 
 	ofMatrix4x4 matrix(matMVP.get());
 	return matrix;
+}
+
+//--------------------------------------------------------------
+ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
+{
+	ofMatrix4x4 matrix;
+
+	if (nController == vr::TrackedControllerRole_LeftHand) {
+		matrix.set(_mat4LeftControllerPose.get());
+	}
+	else if (nController == vr::TrackedControllerRole_RightHand) {
+		matrix.set(_mat4RightControllerPose.get());
+	}
+
+	return matrix;
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::setDrawControllers(bool bDrawControllers)
+{
+	_bDrawControllers = bDrawControllers;
 }
 
 //--------------------------------------------------------------
@@ -257,10 +315,10 @@ bool ofxOpenVR::createAllShaders()
 						}
 					);
 
-	_controllerTransformShader.setupShaderFromSource(GL_VERTEX_SHADER, vertex);
-	_controllerTransformShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragment);
-	_controllerTransformShader.bindDefaults();
-	_controllerTransformShader.linkProgram();
+	_controllersTransformShader.setupShaderFromSource(GL_VERTEX_SHADER, vertex);
+	_controllersTransformShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragment);
+	_controllersTransformShader.bindDefaults();
+	_controllersTransformShader.linkProgram();
 
 	// Lens shader - render distortion
 	vertex = "#version 410\n";
@@ -514,7 +572,7 @@ void ofxOpenVR::setupCameras()
 }
 
 //--------------------------------------------------------------
-void ofxOpenVR::updateHMDMatrixPose()
+void ofxOpenVR::updateDevicesMatrixPose()
 {
 	if (!_pHMD)
 		return;
@@ -533,18 +591,54 @@ void ofxOpenVR::updateHMDMatrixPose()
 			{
 				switch (_pHMD->GetTrackedDeviceClass(nDevice))
 				{
-				case vr::TrackedDeviceClass_Controller:        _rDevClassChar[nDevice] = 'C'; break;
-				case vr::TrackedDeviceClass_HMD:               _rDevClassChar[nDevice] = 'H'; break;
-				case vr::TrackedDeviceClass_Invalid:           _rDevClassChar[nDevice] = 'I'; break;
-				case vr::TrackedDeviceClass_Other:             _rDevClassChar[nDevice] = 'O'; break;
-				case vr::TrackedDeviceClass_TrackingReference: _rDevClassChar[nDevice] = 'T'; break;
-				default:                                       _rDevClassChar[nDevice] = '?'; break;
+				case vr::TrackedDeviceClass_Controller:
+					if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_LeftHand) {
+						_rDevClassChar[nDevice] = 'L';
+					}
+					else {
+						_rDevClassChar[nDevice] = 'R';
+					}
+
+					break;
+
+				case vr::TrackedDeviceClass_HMD:
+					_rDevClassChar[nDevice] = 'H';
+					break;
+
+				case vr::TrackedDeviceClass_Invalid:
+					_rDevClassChar[nDevice] = 'I';
+					break;
+
+				case vr::TrackedDeviceClass_Other:
+					_rDevClassChar[nDevice] = 'O';
+					break;
+
+				case vr::TrackedDeviceClass_TrackingReference:
+					_rDevClassChar[nDevice] = 'T';
+					break;
+
+				default:
+					_rDevClassChar[nDevice] = '?';
+					break;
 				}
 			}
 			_strPoseClasses += _rDevClassChar[nDevice];
+
+			// Controllers
+			if (_pHMD->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_Controller) {
+				if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_LeftHand) {
+					_leftControllerDeviceID = nDevice;
+					_mat4LeftControllerPose = _rmat4DevicePose[nDevice];
+				}
+				else {
+					_rightControllerDeviceID = nDevice;
+					_mat4RightControllerPose = _rmat4DevicePose[nDevice];
+				}
+			}
 		}
 	}
 
+	// HDM
 	if (_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 	{
 		_mat4HMDPose = _rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd].invert();
@@ -601,44 +695,6 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 	}
 }
 
-
-//--------------------------------------------------------------
-void ofxOpenVR::renderFrame()
-{
-	// for now as fast as possible
-	if (_pHMD)
-	{
-		drawControllers();
-		renderStereoTargets();
-		renderDistortion();
-
-		vr::Texture_t leftEyeTexture = { (void*)leftEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
-		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-		vr::Texture_t rightEyeTexture = { (void*)rightEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
-		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
-	}
-
-	if (_bGlFinishHack)
-	{
-		//$ HACKHACK. From gpuview profiling, it looks like there is a bug where two renders and a present
-		// happen right before and after the vsync causing all kinds of jittering issues. This glFinish()
-		// appears to clear that up. Temporary fix while I try to get nvidia to investigate this problem.
-		// 1/29/2014 mikesart
-		glFinish();
-	}
-
-	// Spew out the controller and pose count whenever they change.
-	if (_iTrackedControllerCount != _iTrackedControllerCount_Last || _iValidPoseCount != _iValidPoseCount_Last)
-	{
-		_iValidPoseCount_Last = _iValidPoseCount;
-		_iTrackedControllerCount_Last = _iTrackedControllerCount;
-
-		printf("PoseCount:%d(%s) Controllers:%d\n", _iValidPoseCount, _strPoseClasses.c_str(), _iTrackedControllerCount);
-	}
-
-	updateHMDMatrixPose();
-}
-
 //--------------------------------------------------------------
 void ofxOpenVR::renderStereoTargets()
 {
@@ -690,32 +746,18 @@ void ofxOpenVR::renderStereoTargets()
 //--------------------------------------------------------------
 void ofxOpenVR::drawControllers()
 {
-	// don't draw controllers if somebody else has input focus
+	// Don't draw controllers if somebody else has input focus
 	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
 		return;
 
-	_controllerVbo.clear();
-	_controllerVbo.setMode(OF_PRIMITIVE_LINES);
-	_controllerVbo.disableTextures();
-
+	_controllersVbo.clear();
 	_iTrackedControllerCount = 0;
 
-	for (vr::TrackedDeviceIndex_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; ++unTrackedDevice)
-	{
-		if (!_pHMD->IsTrackedDeviceConnected(unTrackedDevice))
-			continue;
-
-		if (_pHMD->GetTrackedDeviceClass(unTrackedDevice) != vr::TrackedDeviceClass_Controller)
-			continue;
-
+	// Left controller
+	if (_pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID)) {
 		_iTrackedControllerCount += 1;
 
-		if (!_rTrackedDevicePose[unTrackedDevice].bPoseIsValid)
-			continue;
-
-		const Matrix4 & mat = _rmat4DevicePose[unTrackedDevice];
-
-		Vector4 center = mat * Vector4(0, 0, 0, 1);
+		Vector4 center = _mat4LeftControllerPose * Vector4(0, 0, 0, 1);
 
 		for (int i = 0; i < 3; ++i)
 		{
@@ -723,15 +765,38 @@ void ofxOpenVR::drawControllers()
 			Vector4 point(0, 0, 0, 1);
 			point[i] += 0.05f;  // offset in X, Y, Z
 			color[i] = 1.0;  // R, G, B
-			point = mat * point;
+			point = _mat4LeftControllerPose * point;
 
-			_controllerVbo.addVertex(ofVec3f(center.x, center.y, center.z));
-			_controllerVbo.addColor(ofFloatColor(color.x, color.y, color.z));
+			_controllersVbo.addVertex(ofVec3f(center.x, center.y, center.z));
+			_controllersVbo.addColor(ofFloatColor(color.x, color.y, color.z));
 
-			_controllerVbo.addVertex(ofVec3f(point.x, point.y, point.z));
-			_controllerVbo.addColor(ofFloatColor(color.x, color.y, color.z));
+			_controllersVbo.addVertex(ofVec3f(point.x, point.y, point.z));
+			_controllersVbo.addColor(ofFloatColor(color.x, color.y, color.z));
 		}
 	}
+	
+	// Right controller
+	if (_pHMD->IsTrackedDeviceConnected(_rightControllerDeviceID)) {
+		_iTrackedControllerCount += 1;
+
+		Vector4 center = _mat4RightControllerPose * Vector4(0, 0, 0, 1);
+
+		for (int i = 0; i < 3; ++i)
+		{
+			Vector3 color(0, 0, 0);
+			Vector4 point(0, 0, 0, 1);
+			point[i] += 0.05f;  // offset in X, Y, Z
+			color[i] = 1.0;  // R, G, B
+			point = _mat4RightControllerPose * point;
+
+			_controllersVbo.addVertex(ofVec3f(center.x, center.y, center.z));
+			_controllersVbo.addColor(ofFloatColor(color.x, color.y, color.z));
+
+			_controllersVbo.addVertex(ofVec3f(point.x, point.y, point.z));
+			_controllersVbo.addColor(ofFloatColor(color.x, color.y, color.z));
+		}
+	}
+
 }
 
 //--------------------------------------------------------------
@@ -743,15 +808,18 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 	// User's render function
 	_callableRenderFunction(nEye);
 
-	// Draw the controllers
-	bool bIsInputCapturedByAnotherProcess = _pHMD->IsInputFocusCapturedByAnotherProcess();
-
-	if (!bIsInputCapturedByAnotherProcess)
+	// Don't continue if somebody else has input focus
+	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
 	{
-		_controllerTransformShader.begin();
-		_controllerTransformShader.setUniformMatrix4f("matrix", getCurrentViewProjectionMatrix(nEye), 1);
-		_controllerVbo.draw();
-		_controllerTransformShader.end();
+		return;
+	}
+
+	// Draw the controllers
+	if (_bDrawControllers) {
+		_controllersTransformShader.begin();
+		_controllersTransformShader.setUniformMatrix4f("matrix", getCurrentViewProjectionMatrix(nEye), 1);
+		_controllersVbo.draw();
+		_controllersTransformShader.end();
 	}
 }
 
