@@ -40,6 +40,7 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_iValidPoseCount_Last = -1;
 	_strPoseClasses = "";
 	_bDrawControllers = false;
+	_bIsGridVisible = false;
 
 	_controllersVbo.setMode(OF_PRIMITIVE_LINES);
 	_controllersVbo.disableTextures();
@@ -200,6 +201,32 @@ ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 void ofxOpenVR::setDrawControllers(bool bDrawControllers)
 {
 	_bDrawControllers = bDrawControllers;
+}
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+void ofxOpenVR::toggleGrid(float transitionDuration)
+{
+	_bIsGridVisible = !_bIsGridVisible;
+	vr::VRCompositor()->FadeGrid(transitionDuration, _bIsGridVisible);
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::showGrid(float transitionDuration)
+{
+	if (!_bIsGridVisible) {
+		_bIsGridVisible = true;
+		vr::VRCompositor()->FadeGrid(transitionDuration, _bIsGridVisible);
+	}
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::hideGrid(float transitionDuration)
+{
+	if (_bIsGridVisible) {
+		_bIsGridVisible = false;
+		vr::VRCompositor()->FadeGrid(transitionDuration, _bIsGridVisible);
+	}
 }
 
 //--------------------------------------------------------------

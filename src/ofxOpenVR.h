@@ -23,6 +23,9 @@ public:
 
 	void setDrawControllers(bool bDrawControllers);
 
+	void toggleGrid(float transitionDuration = 2.0f);
+	void showGrid(float transitionDuration = 2.0f);
+	void hideGrid(float transitionDuration = 2.0f);
 private:
 
 	struct VertexDataScene
@@ -54,6 +57,7 @@ private:
 
 	bool _bGlFinishHack;
 	bool _bIsGLInit;
+	bool _bIsGridVisible;
 
 	uint32_t _nRenderWidth;
 	uint32_t _nRenderHeight;
