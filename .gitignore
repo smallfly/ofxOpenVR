@@ -10,6 +10,7 @@ Makefile
 *.xcconfig
 *.suo
 *.db
+*.opendb
 
 *.depend
 *.layout
