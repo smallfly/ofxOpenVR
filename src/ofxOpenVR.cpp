@@ -95,6 +95,7 @@ void ofxOpenVR::update()
 	// for now as fast as possible
 	if (_pHMD)
 	{
+		handleInput();
 		drawControllers();
 	}
 
@@ -113,8 +114,6 @@ void ofxOpenVR::update()
 //--------------------------------------------------------------
 void ofxOpenVR::render()
 {
-	bool bQuit = handleInput();
-
 	// for now as fast as possible
 	if (_pHMD)
 	{
@@ -689,7 +688,7 @@ void ofxOpenVR::updateDevicesMatrixPose()
 }
 
 //--------------------------------------------------------------
-bool ofxOpenVR::handleInput()
+void ofxOpenVR::handleInput()
 {
 	// Process SteamVR events
 	vr::VREvent_t event;
@@ -707,8 +706,6 @@ bool ofxOpenVR::handleInput()
 			_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
 		}
 	}
-
-	return true;// bRet;
 }
 
 

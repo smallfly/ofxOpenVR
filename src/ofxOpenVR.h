@@ -120,7 +120,7 @@ private:
 	void setupCameras();
 
 	void updateDevicesMatrixPose();
-	bool handleInput();
+	void handleInput();
 	void processVREvent(const vr::VREvent_t & event);
 
 	void renderStereoTargets();
