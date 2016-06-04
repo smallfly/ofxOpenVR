@@ -33,6 +33,8 @@ private:
 	ofImage _texture;
 	ofBoxPrimitive _box;
 	ofMatrix4x4 _translateMatrix;
-
 	ofShader _shader;
+
+	ofBoxPrimitive _controllerBox;
+	ofShader _controllersShader;
 };

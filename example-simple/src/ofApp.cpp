@@ -66,6 +66,42 @@ void ofApp::setup(){
 	_shader.bindDefaults();
 	_shader.linkProgram();
 
+	// Controllers
+	_controllerBox.set(.1);
+	_controllerBox.enableColors();
+
+	// Vertex shader source
+	vertex = "#version 150\n";
+	vertex += STRINGIFY(
+						uniform mat4 matrix;
+
+						in vec4 position;
+						in vec3 v3ColorIn;
+
+						out vec4 v4Color;
+
+						void main() {
+							v4Color.xyz = v3ColorIn; v4Color.a = 1.0;
+							gl_Position = matrix * position;
+						}
+					);
+
+	// Fragment shader source
+	fragment = "#version 150\n";
+	fragment += STRINGIFY(
+						in vec4 v4Color;
+						out vec4 outputColor;
+						void main() {
+							outputColor = v4Color;
+						}
+					);
+
+	// Shader
+	_controllersShader.setupShaderFromSource(GL_VERTEX_SHADER, vertex);
+	_controllersShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragment);
+	_controllersShader.bindDefaults();
+	_controllersShader.linkProgram();
+
 }
 
 //--------------------------------------------------------------
@@ -90,18 +126,36 @@ void ofApp::draw(){
 //--------------------------------------------------------------
 void  ofApp::render(vr::Hmd_Eye nEye)
 {
-	ofMatrix4x4 hdmPoseMat = _translateMatrix * _openVR.getCurrentViewProjectionMatrix(nEye);
+	// OF textured cube
+	ofMatrix4x4 currentViewProjectionMatrix = _openVR.getCurrentViewProjectionMatrix(nEye);
+	ofMatrix4x4 hdmPoseMat = _translateMatrix * currentViewProjectionMatrix;
 
 	_shader.begin();
 	_shader.setUniformMatrix4f("matrix", hdmPoseMat, 1);
 	_shader.setUniformTexture("baseTex", _texture, 0);
 	_box.draw();
 	_shader.end();
+
+	// Left controller
+	ofMatrix4x4 leftControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_LeftHand) * currentViewProjectionMatrix;
+
+	_controllersShader.begin();
+	_controllersShader.setUniformMatrix4f("matrix", leftControllerPoseMat, 1);
+	_controllerBox.drawWireframe();
+	_controllersShader.end();
+
+	// Right controller
+	ofMatrix4x4 rightControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_RightHand) * currentViewProjectionMatrix;
+
+	_controllersShader.begin();
+	_controllersShader.setUniformMatrix4f("matrix", rightControllerPoseMat, 1);
+	_controllerBox.drawWireframe();
+	_controllersShader.end();
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+	_openVR.toggleGrid();
 }
 
 //--------------------------------------------------------------
