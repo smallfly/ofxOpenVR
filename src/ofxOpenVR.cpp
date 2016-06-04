@@ -259,6 +259,7 @@ bool ofxOpenVR::init()
 		return false;
 	}
 
+	// This is not used for now
 	_pRenderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
 	if (!_pRenderModels)
 	{
