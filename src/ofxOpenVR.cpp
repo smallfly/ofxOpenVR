@@ -51,6 +51,10 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 //--------------------------------------------------------------
 void ofxOpenVR::exit()
 {
+	if (vr::VRCompositor()->IsMirrorWindowVisible()) {
+		hideMirrorWindow();
+	}
+
 	if (_pHMD)
 	{
 		vr::VR_Shutdown();
@@ -204,6 +208,17 @@ void ofxOpenVR::setDrawControllers(bool bDrawControllers)
 }
 
 //--------------------------------------------------------------
+void ofxOpenVR::showMirrorWindow()
+{
+	vr::VRCompositor()->ShowMirrorWindow();
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::hideMirrorWindow()
+{
+	vr::VRCompositor()->HideMirrorWindow();
+}
+
 //--------------------------------------------------------------
 void ofxOpenVR::toggleGrid(float transitionDuration)
 {

@@ -23,9 +23,13 @@ public:
 
 	void setDrawControllers(bool bDrawControllers);
 
+	void showMirrorWindow();
+	void hideMirrorWindow();
+
 	void toggleGrid(float transitionDuration = 2.0f);
 	void showGrid(float transitionDuration = 2.0f);
 	void hideGrid(float transitionDuration = 2.0f);
+
 private:
 
 	struct VertexDataScene
