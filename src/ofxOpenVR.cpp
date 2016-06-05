@@ -38,7 +38,6 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_iTrackedControllerCount_Last = -1;
 	_iValidPoseCount = 0;
 	_iValidPoseCount_Last = -1;
-	_strPoseClasses = "";
 	_bDrawControllers = false;
 	_bIsGridVisible = false;
 
@@ -105,7 +104,8 @@ void ofxOpenVR::update()
 		_iValidPoseCount_Last = _iValidPoseCount;
 		_iTrackedControllerCount_Last = _iTrackedControllerCount;
 
-		printf("PoseCount:%d(%s) Controllers:%d\n", _iValidPoseCount, _strPoseClasses.c_str(), _iTrackedControllerCount);
+		//printf("PoseCount:%d(%s) Controllers:%d\n", _iValidPoseCount, _strPoseClasses.c_str(), _iTrackedControllerCount);
+		printf("PoseCount:%d Controllers:%d\n", _iValidPoseCount, _iTrackedControllerCount);
 	}
 
 	updateDevicesMatrixPose();
@@ -618,61 +618,75 @@ void ofxOpenVR::updateDevicesMatrixPose()
 {
 	if (!_pHMD)
 		return;
+	
+	// Reset some vars.
+	_iValidPoseCount = 0;
+	_iTrackedControllerCount = 0;
 
+	_strPoseClassesOSS.str("");
+	_strPoseClassesOSS.clear();
+	_strPoseClassesOSS << "FPS " << ofToString(ofGetFrameRate()) << endl;
+	_strPoseClassesOSS << "Frame #" << ofToString(ofGetFrameNum()) << endl;
+	_strPoseClassesOSS << endl;
+
+	// Retrieve all tracked devices' matrix/pose.
 	vr::VRCompositor()->WaitGetPoses(_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
 
-	_iValidPoseCount = 0;
-	_strPoseClasses = "";
+	// Go through all the tracked devices.
 	for (int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
 	{
 		if (_rTrackedDevicePose[nDevice].bPoseIsValid)
 		{
 			_iValidPoseCount++;
+
+			// Keep all valid matrices.
 			_rmat4DevicePose[nDevice] = convertSteamVRMatrixToMatrix4(_rTrackedDevicePose[nDevice].mDeviceToAbsoluteTracking);
-			if (_rDevClassChar[nDevice] == 0)
+
+			// Add info to the debug panel.
+			switch (_pHMD->GetTrackedDeviceClass(nDevice))
 			{
-				switch (_pHMD->GetTrackedDeviceClass(nDevice))
-				{
 				case vr::TrackedDeviceClass_Controller:
 					if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_LeftHand) {
-						_rDevClassChar[nDevice] = 'L';
+						_strPoseClassesOSS << "Controller Left" << endl;
+					}
+					else if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_RightHand) {
+						_strPoseClassesOSS << "Controller Right" << endl;
 					}
 					else {
-						_rDevClassChar[nDevice] = 'R';
+						_strPoseClassesOSS << "Controller" << endl;
 					}
-
 					break;
 
 				case vr::TrackedDeviceClass_HMD:
-					_rDevClassChar[nDevice] = 'H';
+					_strPoseClassesOSS << "HMD" << endl;
 					break;
 
 				case vr::TrackedDeviceClass_Invalid:
-					_rDevClassChar[nDevice] = 'I';
+					_strPoseClassesOSS << "Invalid Device Class" << endl;
 					break;
 
 				case vr::TrackedDeviceClass_Other:
-					_rDevClassChar[nDevice] = 'O';
+					_strPoseClassesOSS << "Other Device Class" << endl;
 					break;
 
 				case vr::TrackedDeviceClass_TrackingReference:
-					_rDevClassChar[nDevice] = 'T';
+					_strPoseClassesOSS << "Tracking Reference - Camera" << endl;
 					break;
 
 				default:
-					_rDevClassChar[nDevice] = '?';
+					_strPoseClassesOSS << "Unknown Device Class" << endl;
 					break;
-				}
 			}
-			_strPoseClasses += _rDevClassChar[nDevice];
 
-			// Controllers
+			// Store controllers' ID and matrix. 
 			if (_pHMD->GetTrackedDeviceClass(nDevice) == vr::TrackedDeviceClass_Controller) {
+				_iTrackedControllerCount += 1;
+
 				if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_LeftHand) {
 					_leftControllerDeviceID = nDevice;
 					_mat4LeftControllerPose = _rmat4DevicePose[nDevice];
 				}
-				else {
+				else if (_pHMD->GetControllerRoleForTrackedDeviceIndex(nDevice) == vr::TrackedControllerRole_RightHand) {
 					_rightControllerDeviceID = nDevice;
 					_mat4RightControllerPose = _rmat4DevicePose[nDevice];
 				}
@@ -680,11 +694,17 @@ void ofxOpenVR::updateDevicesMatrixPose()
 		}
 	}
 
-	// HDM
+	// Store HDM's matrix
 	if (_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 	{
 		_mat4HMDPose = _rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd].invert();
 	}
+
+	// Aad more info to the debug panel.
+	_strPoseClassesOSS << endl;
+	_strPoseClassesOSS << "Pose Count: " << _iValidPoseCount << endl;
+    _strPoseClassesOSS << "Controller Count: " << _iTrackedControllerCount << endl;
+
 }
 
 //--------------------------------------------------------------
@@ -791,12 +811,9 @@ void ofxOpenVR::drawControllers()
 		return;
 
 	_controllersVbo.clear();
-	_iTrackedControllerCount = 0;
-
+	
 	// Left controller
 	if (_pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID)) {
-		_iTrackedControllerCount += 1;
-
 		Vector4 center = _mat4LeftControllerPose * Vector4(0, 0, 0, 1);
 
 		for (int i = 0; i < 3; ++i)
@@ -817,8 +834,6 @@ void ofxOpenVR::drawControllers()
 	
 	// Right controller
 	if (_pHMD->IsTrackedDeviceConnected(_rightControllerDeviceID)) {
-		_iTrackedControllerCount += 1;
-
 		Vector4 center = _mat4RightControllerPose * Vector4(0, 0, 0, 1);
 
 		for (int i = 0; i < 3; ++i)
@@ -890,6 +905,12 @@ void ofxOpenVR::renderDistortion()
 
 	glBindVertexArray(0);
 	_lensShader.end();
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::drawDebugInfo(float x, float y)
+{
+	ofDrawBitmapStringHighlight(_strPoseClassesOSS.str(), ofPoint(x, y), ofColor(ofColor::black, 100.0f));
 }
 
 //--------------------------------------------------------------

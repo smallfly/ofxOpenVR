@@ -15,6 +15,8 @@ public:
 	void render();
 	void renderDistortion();
 
+	void drawDebugInfo(float x = 10.0f, float y = 20.0f);
+
 	Matrix4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
 	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
@@ -82,8 +84,7 @@ private:
 	int _iValidPoseCount;
 	int _iValidPoseCount_Last;
 
-	std::string _strPoseClasses;                            // what classes we saw poses for this frame
-	char _rDevClassChar[vr::k_unMaxTrackedDeviceCount];   // for each device, a character representing its class
+	std::ostringstream _strPoseClassesOSS;
 
 	ofShader _lensShader;
 	GLuint _unLensVAO;

@@ -120,7 +120,7 @@ void ofApp::draw(){
 
 	_openVR.renderDistortion();
 
-	ofDrawBitmapStringHighlight(ofToString(ofGetFrameRate()), ofPoint(10.0f, 20.0f));
+	_openVR.drawDebugInfo();
 }
 
 //--------------------------------------------------------------
