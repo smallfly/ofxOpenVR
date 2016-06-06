@@ -5,6 +5,42 @@
 #include "Matrices.h"
 
 //--------------------------------------------------------------
+class ofxOpenVRControllerEventArgs : public ofEventArgs
+{
+public:
+
+	enum ControllerRole
+	{
+		Left = 0,
+		Right = 1,
+		Unknown = 3
+	};
+
+	enum EventType
+	{
+		ButtonPress = 0, 
+		ButtonUnpress = 1,
+		ButtonTouch = 2,
+		ButtonUntouch = 3
+	};
+
+	enum ButtonType
+	{
+		ButtonSystem = 0,
+		ButtonApplicationMenu = 1,
+		ButtonGrip = 2,
+		ButtonTouchpad = 3,
+		ButtonTrigger = 4
+	};
+
+	ControllerRole controllerRole;
+	ButtonType buttonType;
+	EventType eventType;
+	float analogInput_xAxis;
+	float analogInput_yAxis;
+};
+
+//--------------------------------------------------------------
 class ofxOpenVR {
 
 public:
@@ -31,6 +67,8 @@ public:
 	void toggleGrid(float transitionDuration = 2.0f);
 	void showGrid(float transitionDuration = 2.0f);
 	void hideGrid(float transitionDuration = 2.0f);
+
+	ofEvent<ofxOpenVRControllerEventArgs> ofxOpenVRControllerEvent;
 
 private:
 

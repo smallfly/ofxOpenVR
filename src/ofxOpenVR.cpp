@@ -717,6 +717,7 @@ void ofxOpenVR::handleInput()
 		processVREvent(event);
 	}
 
+	// TODO - Check this.
 	// Process SteamVR controller state
 	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
 	{
@@ -733,26 +734,170 @@ void ofxOpenVR::handleInput()
 // Purpose: Processes a single VR event
 //--------------------------------------------------------------
 void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
-{
-	switch (event.eventType)
+{	
+	// Check device's class.
+	switch (_pHMD->GetTrackedDeviceClass(event.trackedDeviceIndex))
 	{
-	case vr::VREvent_TrackedDeviceActivated:
-	{
-		//SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
-		printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
+		case vr::TrackedDeviceClass_Controller:
+			ofxOpenVRControllerEventArgs _args;
+
+			// Controller's role.
+			if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_LeftHand) {
+				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Left;
+			}
+			else if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_RightHand) {
+				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Right;
+			}
+			else {
+				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Unknown;
+			}
+
+			// Get extra data about the controller.
+			vr::VRControllerState_t pControllerState;
+			vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &pControllerState);
+
+			_args.analogInput_xAxis = -1;
+			_args.analogInput_yAxis = -1;
+
+			// Button type
+			switch (event.data.controller.button) {
+				case vr::k_EButton_System:
+				{
+					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonSystem;
+				}
+				break;
+
+				case vr::k_EButton_ApplicationMenu:
+				{
+					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonApplicationMenu;
+				}
+				break;
+
+				case vr::k_EButton_Grip:
+				{
+					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonGrip;
+				}
+				break;
+
+				case vr::k_EButton_SteamVR_Touchpad:
+				{
+					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTouchpad;
+
+					_args.analogInput_xAxis = pControllerState.rAxis->x;
+					_args.analogInput_yAxis = pControllerState.rAxis->y;
+				}
+				break;
+
+				case vr::k_EButton_SteamVR_Trigger:
+				{
+					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTrigger;
+				}
+				break;
+			}
+
+			// Check event's type.
+			switch (event.eventType) {
+				case vr::VREvent_ButtonPress:
+				{
+					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonPress;
+				}
+				break;
+
+				case vr::VREvent_ButtonUnpress:
+				{
+					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUnpress;
+				}
+				break;
+
+				case vr::VREvent_ButtonTouch:
+				{
+					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonTouch;
+				}
+				break;
+
+				case vr::VREvent_ButtonUntouch:
+				{
+					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUntouch;
+				}
+				break;
+			}
+
+			ofNotifyEvent(ofxOpenVRControllerEvent, _args);
+			break;
+
+		case vr::TrackedDeviceClass_HMD:
+			break;
+
+		case vr::TrackedDeviceClass_Invalid:
+			break;
+
+		case vr::TrackedDeviceClass_Other:
+			break;
+
+		case vr::TrackedDeviceClass_TrackingReference:
+			break;
+
+		default:
+			break;
 	}
-	break;
-	case vr::VREvent_TrackedDeviceDeactivated:
-	{
-		printf("Device %u detached.\n", event.trackedDeviceIndex);
-	}
-	break;
-	case vr::VREvent_TrackedDeviceUpdated:
-	{
-		printf("Device %u updated.\n", event.trackedDeviceIndex);
-	}
-	break;
-	}
+	
+	// TODO - Continue from here...
+	// Check event's type.
+	switch (event.eventType) {
+		case vr::VREvent_TrackedDeviceActivated:
+		{
+			//SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
+			printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
+		}
+		break;
+
+		case vr::VREvent_TrackedDeviceDeactivated:
+		{
+			printf("Device %u detached.\n", event.trackedDeviceIndex);
+		}
+		break;	
+
+		case vr::VREvent_TrackedDeviceUpdated:
+		{
+			printf("Device %u updated.\n", event.trackedDeviceIndex);
+		}
+		break;
+
+		case vr::VREvent_ButtonPress:
+		{
+			//_leftControllerDeviceID
+			vr::VRControllerState_t pControllerState;
+			vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &pControllerState);
+
+			if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_LeftHand) {
+			//if (event.trackedDeviceIndex == _leftControllerDeviceID) {
+				printf("L Device %u button press %s - x:%4.2f - y:%4.2f.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button), pControllerState.rAxis->x, pControllerState.rAxis->y);
+				//GetControllerAxisTypeNameFromEnum(EVRControllerAxisType eAxisType)	
+			}
+			else {
+				printf("R Device %u button press %s - x:%4.2f - y:%4.2f.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button), pControllerState.rAxis->x, pControllerState.rAxis->y);
+			}
+		}
+		break;
+
+		case vr::VREvent_ButtonUnpress:
+		{
+			printf("Device %u button unpress %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
+		}
+		break;
+
+		case vr::VREvent_ButtonTouch:
+		{
+			printf("Device %u button touch %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
+		}
+		break;
+
+		case vr::VREvent_ButtonUntouch:
+		{
+			printf("Device %ubutton untouch %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
+		}
+		break;
+	}			
 }
 
 //--------------------------------------------------------------

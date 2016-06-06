@@ -26,6 +26,8 @@ public:
 
 	void render(vr::Hmd_Eye nEye);
 
+	void controllerEvent(ofxOpenVRControllerEventArgs& args);
+
 private:
 
 	ofxOpenVR _openVR;

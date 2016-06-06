@@ -10,8 +10,9 @@ void ofApp::setup(){
 	_openVR.setup(std::bind(&ofApp::render, this, std::placeholders::_1));
 	_openVR.setDrawControllers(true);
 
+	ofAddListener(_openVR.ofxOpenVRControllerEvent, this, &ofApp::controllerEvent);
+
 	_texture.load("of.png");
-	//_texture.getTextureReference().getTextureData().bFlipTexture = true;
 	_texture.getTexture().setTextureWrap(GL_REPEAT, GL_REPEAT);
 	
 	_box.set(1);
@@ -106,6 +107,8 @@ void ofApp::setup(){
 
 //--------------------------------------------------------------
 void ofApp::exit() {
+	ofRemoveListener(_openVR.ofxOpenVRControllerEvent, this, &ofApp::controllerEvent);
+
 	_openVR.exit();
 }
 
@@ -151,6 +154,12 @@ void  ofApp::render(vr::Hmd_Eye nEye)
 	_controllersShader.setUniformMatrix4f("matrix", rightControllerPoseMat, 1);
 	_controllerBox.drawWireframe();
 	_controllersShader.end();
+}
+
+//--------------------------------------------------------------
+void ofApp::controllerEvent(ofxOpenVRControllerEventArgs& args)
+{
+	cout << "ofApp::controllerEvent > role: " << args.controllerRole << " - event type: " << args.eventType << " - button type: " << args.buttonType << " - x: " << args.analogInput_xAxis << " - y: " << args.analogInput_yAxis << endl;
 }
 
 //--------------------------------------------------------------
