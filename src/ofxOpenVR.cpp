@@ -288,15 +288,11 @@ bool ofxOpenVR::init()
 		sprintf_s(buf, sizeof(buf), "Unable to get render model interface: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
 		return false;
 	}
+	_strTrackingSystemName = "No Driver";
+	_strTrackingSystemModelNumber = "No Display";
 
-	_strDriver = "No Driver";
-	_strDisplay = "No Display";
-
-	_strDriver = getTrackedDeviceString(_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
-	_strDisplay = getTrackedDeviceString(_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-
-	std::string strWindowTitle = "hellovr_sdl - " + _strDriver + " " + _strDisplay;
-	ofSetWindowTitle(strWindowTitle);
+	_strTrackingSystemName = getTrackedDeviceString(_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
+	_strTrackingSystemModelNumber = getTrackedDeviceString(_pHMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_ModelNumber_String);
 
 	_fNearClip = 0.1f;
 	_fFarClip = 30.0f;
@@ -649,6 +645,7 @@ void ofxOpenVR::updateDevicesMatrixPose()
 	_strPoseClassesOSS << "FPS " << ofToString(ofGetFrameRate()) << endl;
 	_strPoseClassesOSS << "Frame #" << ofToString(ofGetFrameNum()) << endl;
 	_strPoseClassesOSS << endl;
+	_strPoseClassesOSS << "Connected Device(s): " << endl;
 
 	// Retrieve all tracked devices' matrix/pose.
 	vr::VRCompositor()->WaitGetPoses(_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
@@ -1076,6 +1073,11 @@ void ofxOpenVR::renderDistortion()
 //--------------------------------------------------------------
 void ofxOpenVR::drawDebugInfo(float x, float y)
 {
+
+	_strPoseClassesOSS << endl;
+	_strPoseClassesOSS << "System Name: " << _strTrackingSystemName << endl;
+	_strPoseClassesOSS << "System S/N: " << _strTrackingSystemModelNumber << endl;
+
 	ofDrawBitmapStringHighlight(_strPoseClassesOSS.str(), ofPoint(x, y), ofColor(ofColor::black, 100.0f));
 }
 

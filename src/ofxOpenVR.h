@@ -111,9 +111,10 @@ private:
 	float _fFarClip;
 
 	vr::IVRSystem *_pHMD;
+
 	vr::IVRRenderModels *_pRenderModels;
-	std::string _strDriver;
-	std::string _strDisplay;
+	std::string _strTrackingSystemName;
+	std::string _strTrackingSystemModelNumber;
 	vr::TrackedDevicePose_t _rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 	Matrix4 _rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
 	bool _rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
