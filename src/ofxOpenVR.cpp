@@ -35,6 +35,8 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_bGlFinishHack = true;
 	_unLensVAO = 0;
 	_iTrackedControllerCount = 0;
+	_leftControllerDeviceID = -1;
+	_rightControllerDeviceID = -1;
 	_iTrackedControllerCount_Last = -1;
 	_iValidPoseCount = 0;
 	_iValidPoseCount_Last = -1;
@@ -198,6 +200,23 @@ ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 	}
 
 	return matrix;
+}
+
+//--------------------------------------------------------------
+bool ofxOpenVR::isControllerConnected(vr::ETrackedControllerRole nController)
+{
+	if (_pHMD) {
+		if (_iTrackedControllerCount > 0) {
+			if (nController == vr::TrackedControllerRole_LeftHand) {
+				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
+			}
+			else if (nController == vr::TrackedControllerRole_RightHand) {
+				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
+			}
+		}
+	}
+
+	return false;
 }
 
 //--------------------------------------------------------------
@@ -622,6 +641,8 @@ void ofxOpenVR::updateDevicesMatrixPose()
 	// Reset some vars.
 	_iValidPoseCount = 0;
 	_iTrackedControllerCount = 0;
+	_leftControllerDeviceID = -1;
+	_rightControllerDeviceID = -1;
 
 	_strPoseClassesOSS.str("");
 	_strPoseClassesOSS.clear();

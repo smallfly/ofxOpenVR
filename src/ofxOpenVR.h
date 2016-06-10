@@ -58,6 +58,7 @@ public:
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
 
 	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
+	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
 	void setDrawControllers(bool bDrawControllers);
 

@@ -140,20 +140,24 @@ void  ofApp::render(vr::Hmd_Eye nEye)
 	_shader.end();
 
 	// Left controller
-	ofMatrix4x4 leftControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_LeftHand) * currentViewProjectionMatrix;
+	if (_openVR.isControllerConnected(vr::TrackedControllerRole_LeftHand)) {
+		ofMatrix4x4 leftControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_LeftHand) * currentViewProjectionMatrix;
 
-	_controllersShader.begin();
-	_controllersShader.setUniformMatrix4f("matrix", leftControllerPoseMat, 1);
-	_controllerBox.drawWireframe();
-	_controllersShader.end();
+		_controllersShader.begin();
+		_controllersShader.setUniformMatrix4f("matrix", leftControllerPoseMat, 1);
+		_controllerBox.drawWireframe();
+		_controllersShader.end();
+	}
 
 	// Right controller
-	ofMatrix4x4 rightControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_RightHand) * currentViewProjectionMatrix;
+	if (_openVR.isControllerConnected(vr::TrackedControllerRole_RightHand)) {
+		ofMatrix4x4 rightControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_RightHand) * currentViewProjectionMatrix;
 
-	_controllersShader.begin();
-	_controllersShader.setUniformMatrix4f("matrix", rightControllerPoseMat, 1);
-	_controllerBox.drawWireframe();
-	_controllersShader.end();
+		_controllersShader.begin();
+		_controllersShader.setUniformMatrix4f("matrix", rightControllerPoseMat, 1);
+		_controllerBox.drawWireframe();
+		_controllersShader.end();
+	}
 }
 
 //--------------------------------------------------------------
