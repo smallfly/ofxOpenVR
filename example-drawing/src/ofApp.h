@@ -43,5 +43,6 @@ class ofApp : public ofBaseApp{
 		ofVec3f lastLeftControllerPosition;
 		ofVec3f lastRightControllerPosition;
 
+		bool bShowHelp;
 		std::ostringstream _strHelp;
 };

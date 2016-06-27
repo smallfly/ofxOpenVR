@@ -6,6 +6,7 @@
 void ofApp::setup(){
 	ofSetVerticalSync(false);
 
+	bShowHelp = true;
 	bUseShader = true;
 	bIsLeftTriggerPressed = false;
 	bIsRightTriggerPressed = false;
@@ -48,18 +49,10 @@ void ofApp::setup(){
 	shader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragment);
 	shader.bindDefaults();
 	shader.linkProgram();
-
-	// Help
-	_strHelp.str("");
-	_strHelp.clear();
-	_strHelp << "HELP " << ofToString(ofGetFrameRate()) << endl;
-	_strHelp << "Press the Trigger of a controller to draw a line with that specific controller." << endl;
-	_strHelp << "Press the Touchpad to star a new line." << endl;
-	_strHelp << "Press the Grip button to clear all the lines drawn with that specific controller." << endl;
 }
 
 //--------------------------------------------------------------
-void ofApp::exit() {
+void ofApp::exit(){
 	ofRemoveListener(openVR.ofxOpenVRControllerEvent, this, &ofApp::controllerEvent);
 
 	openVR.exit();
@@ -97,15 +90,23 @@ void ofApp::draw(){
 	openVR.render();
 	openVR.renderDistortion();
 
-	openVR.drawDebugInfo();
+	openVR.drawDebugInfo(10.0f, 500.0f);
 
 	// Help
-	ofDrawBitmapStringHighlight(_strHelp.str(), ofPoint(10.0f, 500.0f), ofColor(ofColor::black, 100.0f));
+	if (bShowHelp) {
+		_strHelp.str("");
+		_strHelp.clear();
+		_strHelp << "HELP (press h to toggle): " << endl;
+		_strHelp << "Press the Trigger of a controller to draw a line with that specific controller." << endl;
+		_strHelp << "Press the Touchpad to star a new line." << endl;
+		_strHelp << "Press the Grip button to clear all the lines drawn with that specific controller." << endl;
+		_strHelp << "Drawing resolution " << polylineResolution << " (press: +/-)." << endl;
+		ofDrawBitmapStringHighlight(_strHelp.str(), ofPoint(10.0f, 20.0f), ofColor(ofColor::black, 100.0f));
+	}
 }
 
 //--------------------------------------------------------------
-void  ofApp::render(vr::Hmd_Eye nEye)
-{
+void  ofApp::render(vr::Hmd_Eye nEye){
 	// Using a shader
 	if (bUseShader) {
 		ofMatrix4x4 currentViewProjectionMatrix = openVR.getCurrentViewProjectionMatrix(nEye);
@@ -146,8 +147,7 @@ void  ofApp::render(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
-void ofApp::controllerEvent(ofxOpenVRControllerEventArgs& args)
-{
+void ofApp::controllerEvent(ofxOpenVRControllerEventArgs& args){
 	//cout << "ofApp::controllerEvent > role: " << ofToString(args.controllerRole) << " - event type: " << ofToString(args.eventType) << " - button type: " << ofToString(args.buttonType) << " - x: " << args.analogInput_xAxis << " - y: " << args.analogInput_yAxis << endl;
 	// Left
 	if (args.controllerRole == ControllerRole::Left) {
@@ -222,22 +222,29 @@ void ofApp::controllerEvent(ofxOpenVRControllerEventArgs& args)
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
 	switch (key) {
-		case 357:
+		case '+':
+		case '=':
 			polylineResolution += .0001f;
 			break;
 		
-		case 359:
+		case '-':
+		case '_':
 			polylineResolution -= .0001f;
 			if (polylineResolution < 0) {
 				polylineResolution = 0;
 			}
 			break;
 
+		case 'h':
+			bShowHelp = !bShowHelp;
+			break;
+
 		default:
 			break;
 	}
+
+	cout << polylineResolution  << endl;
 }
 
 //--------------------------------------------------------------
