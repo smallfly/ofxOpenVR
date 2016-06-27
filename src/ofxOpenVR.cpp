@@ -768,13 +768,13 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 
 			// Controller's role.
 			if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_LeftHand) {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Left;
+				_args.controllerRole = ControllerRole::Left;
 			}
 			else if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_RightHand) {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Right;
+				_args.controllerRole = ControllerRole::Right;
 			}
 			else {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Unknown;
+				_args.controllerRole = ControllerRole::Unknown;
 			}
 
 			// Get extra data about the controller.
@@ -788,25 +788,25 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 			switch (event.data.controller.button) {
 				case vr::k_EButton_System:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonSystem;
+					_args.buttonType = ButtonType::ButtonSystem;
 				}
 				break;
 
 				case vr::k_EButton_ApplicationMenu:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonApplicationMenu;
+					_args.buttonType = ButtonType::ButtonApplicationMenu;
 				}
 				break;
 
 				case vr::k_EButton_Grip:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonGrip;
+					_args.buttonType = ButtonType::ButtonGrip;
 				}
 				break;
 
 				case vr::k_EButton_SteamVR_Touchpad:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTouchpad;
+					_args.buttonType = ButtonType::ButtonTouchpad;
 
 					_args.analogInput_xAxis = pControllerState.rAxis->x;
 					_args.analogInput_yAxis = pControllerState.rAxis->y;
@@ -815,7 +815,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 
 				case vr::k_EButton_SteamVR_Trigger:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTrigger;
+					_args.buttonType = ButtonType::ButtonTrigger;
 				}
 				break;
 			}
@@ -824,25 +824,25 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 			switch (event.eventType) {
 				case vr::VREvent_ButtonPress:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonPress;
+					_args.eventType = EventType::ButtonPress;
 				}
 				break;
 
 				case vr::VREvent_ButtonUnpress:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUnpress;
+					_args.eventType = EventType::ButtonUnpress;
 				}
 				break;
 
 				case vr::VREvent_ButtonTouch:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonTouch;
+					_args.eventType = EventType::ButtonTouch;
 				}
 				break;
 
 				case vr::VREvent_ButtonUntouch:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUntouch;
+					_args.eventType = EventType::ButtonUntouch;
 				}
 				break;
 			}
