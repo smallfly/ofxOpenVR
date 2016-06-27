@@ -20,7 +20,7 @@ void ofApp::setup(){
 	_box.mapTexCoordsFromTexture(_texture.getTexture());
 	
 	// Create a translation matrix to place the box in the space
-	_translateMatrix.translate(ofVec3f(0.0, 1.0, -1.0));
+	_translateMatrix.translate(ofVec3f(0.0, .0, -2.0));
 
 	// Vertex shader source
 	string vertex;
