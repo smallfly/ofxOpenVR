@@ -61,6 +61,8 @@ public:
 	Matrix4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
 	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
+	ofMatrix4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
+	ofMatrix4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
 
 	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
 	bool isControllerConnected(vr::ETrackedControllerRole nController);

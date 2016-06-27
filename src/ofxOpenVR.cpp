@@ -189,6 +189,40 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
+ofMatrix4x4 ofxOpenVR::getCurrentProjectionMatrix(vr::Hmd_Eye nEye)
+{
+	Matrix4 matP;
+	if (nEye == vr::Eye_Left)
+	{
+		matP = _mat4ProjectionLeft;
+	}
+	else if (nEye == vr::Eye_Right)
+	{
+		matP = _mat4ProjectionRight;
+	}
+
+	ofMatrix4x4 matrix(matP.get());
+	return matrix;
+}
+
+//--------------------------------------------------------------
+ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
+{
+	Matrix4 matV;
+	if (nEye == vr::Eye_Left)
+	{
+		matV = _mat4eyePosLeft * _mat4HMDPose;
+	}
+	else if (nEye == vr::Eye_Right)
+	{
+		matV = _mat4eyePosRight *  _mat4HMDPose;
+	}
+
+	ofMatrix4x4 matrix(matV.get());
+	return matrix;
+}
+
+//--------------------------------------------------------------
 ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 {
 	ofMatrix4x4 matrix;
