@@ -42,6 +42,7 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_iValidPoseCount_Last = -1;
 	_bDrawControllers = false;
 	_bIsGridVisible = false;
+	_clearColor.set(.08f, .08f, .08f, 1.0f);
 
 	_controllersVbo.setMode(OF_PRIMITIVE_LINES);
 	_controllersVbo.disableTextures();
@@ -188,6 +189,40 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
+ofMatrix4x4 ofxOpenVR::getCurrentProjectionMatrix(vr::Hmd_Eye nEye)
+{
+	Matrix4 matP;
+	if (nEye == vr::Eye_Left)
+	{
+		matP = _mat4ProjectionLeft;
+	}
+	else if (nEye == vr::Eye_Right)
+	{
+		matP = _mat4ProjectionRight;
+	}
+
+	ofMatrix4x4 matrix(matP.get());
+	return matrix;
+}
+
+//--------------------------------------------------------------
+ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
+{
+	Matrix4 matV;
+	if (nEye == vr::Eye_Left)
+	{
+		matV = _mat4eyePosLeft * _mat4HMDPose;
+	}
+	else if (nEye == vr::Eye_Right)
+	{
+		matV = _mat4eyePosRight *  _mat4HMDPose;
+	}
+
+	ofMatrix4x4 matrix(matV.get());
+	return matrix;
+}
+
+//--------------------------------------------------------------
 ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 {
 	ofMatrix4x4 matrix;
@@ -211,7 +246,7 @@ bool ofxOpenVR::isControllerConnected(vr::ETrackedControllerRole nController)
 				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
 			}
 			else if (nController == vr::TrackedControllerRole_RightHand) {
-				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
+				return _pHMD->IsTrackedDeviceConnected(_rightControllerDeviceID);
 			}
 		}
 	}
@@ -223,6 +258,12 @@ bool ofxOpenVR::isControllerConnected(vr::ETrackedControllerRole nController)
 void ofxOpenVR::setDrawControllers(bool bDrawControllers)
 {
 	_bDrawControllers = bDrawControllers;
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::setClearColor(ofFloatColor color)
+{
+	_clearColor.set(color);
 }
 
 //--------------------------------------------------------------
@@ -761,13 +802,13 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 
 			// Controller's role.
 			if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_LeftHand) {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Left;
+				_args.controllerRole = ControllerRole::Left;
 			}
 			else if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_RightHand) {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Right;
+				_args.controllerRole = ControllerRole::Right;
 			}
 			else {
-				_args.controllerRole = ofxOpenVRControllerEventArgs::ControllerRole::Unknown;
+				_args.controllerRole = ControllerRole::Unknown;
 			}
 
 			// Get extra data about the controller.
@@ -781,25 +822,25 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 			switch (event.data.controller.button) {
 				case vr::k_EButton_System:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonSystem;
+					_args.buttonType = ButtonType::ButtonSystem;
 				}
 				break;
 
 				case vr::k_EButton_ApplicationMenu:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonApplicationMenu;
+					_args.buttonType = ButtonType::ButtonApplicationMenu;
 				}
 				break;
 
 				case vr::k_EButton_Grip:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonGrip;
+					_args.buttonType = ButtonType::ButtonGrip;
 				}
 				break;
 
 				case vr::k_EButton_SteamVR_Touchpad:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTouchpad;
+					_args.buttonType = ButtonType::ButtonTouchpad;
 
 					_args.analogInput_xAxis = pControllerState.rAxis->x;
 					_args.analogInput_yAxis = pControllerState.rAxis->y;
@@ -808,7 +849,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 
 				case vr::k_EButton_SteamVR_Trigger:
 				{
-					_args.buttonType = ofxOpenVRControllerEventArgs::ButtonType::ButtonTrigger;
+					_args.buttonType = ButtonType::ButtonTrigger;
 				}
 				break;
 			}
@@ -817,25 +858,25 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 			switch (event.eventType) {
 				case vr::VREvent_ButtonPress:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonPress;
+					_args.eventType = EventType::ButtonPress;
 				}
 				break;
 
 				case vr::VREvent_ButtonUnpress:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUnpress;
+					_args.eventType = EventType::ButtonUnpress;
 				}
 				break;
 
 				case vr::VREvent_ButtonTouch:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonTouch;
+					_args.eventType = EventType::ButtonTouch;
 				}
 				break;
 
 				case vr::VREvent_ButtonUntouch:
 				{
-					_args.eventType = ofxOpenVRControllerEventArgs::EventType::ButtonUntouch;
+					_args.eventType = EventType::ButtonUntouch;
 				}
 				break;
 			}
@@ -921,7 +962,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 //--------------------------------------------------------------
 void ofxOpenVR::renderStereoTargets()
 {
-	glClearColor(0.15f, 0.15f, 0.18f, 1.0f); // nice background color, but not black
+	glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 	glEnable(GL_MULTISAMPLE);
 
 	// Left Eye
@@ -1023,9 +1064,6 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	// User's render function
-	_callableRenderFunction(nEye);
-
 	// Don't continue if somebody else has input focus
 	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
 	{
@@ -1039,6 +1077,9 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 		_controllersVbo.draw();
 		_controllersTransformShader.end();
 	}
+
+	// User's render function
+	_callableRenderFunction(nEye);
 }
 
 //--------------------------------------------------------------

@@ -33,3 +33,5 @@ build/
 
 example-simple/bin/*
 !example-simple/bin/data
+example-drawing/bin/*
+!example-drawing/bin/data

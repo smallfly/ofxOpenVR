@@ -5,34 +5,38 @@
 #include "Matrices.h"
 
 //--------------------------------------------------------------
+//--------------------------------------------------------------
+enum class ControllerRole
+{
+	Left = 0,
+	Right = 1,
+	Unknown = 3
+};
+
+//--------------------------------------------------------------
+enum class EventType
+{
+	ButtonPress = 0,
+	ButtonUnpress = 1,
+	ButtonTouch = 2,
+	ButtonUntouch = 3
+};
+
+//--------------------------------------------------------------
+enum class ButtonType
+{
+	ButtonSystem = 0,
+	ButtonApplicationMenu = 1,
+	ButtonGrip = 2,
+	ButtonTouchpad = 3,
+	ButtonTrigger = 4
+};
+
+//--------------------------------------------------------------
+//--------------------------------------------------------------
 class ofxOpenVRControllerEventArgs : public ofEventArgs
 {
 public:
-
-	enum ControllerRole
-	{
-		Left = 0,
-		Right = 1,
-		Unknown = 3
-	};
-
-	enum EventType
-	{
-		ButtonPress = 0, 
-		ButtonUnpress = 1,
-		ButtonTouch = 2,
-		ButtonUntouch = 3
-	};
-
-	enum ButtonType
-	{
-		ButtonSystem = 0,
-		ButtonApplicationMenu = 1,
-		ButtonGrip = 2,
-		ButtonTouchpad = 3,
-		ButtonTrigger = 4
-	};
-
 	ControllerRole controllerRole;
 	ButtonType buttonType;
 	EventType eventType;
@@ -40,6 +44,7 @@ public:
 	float analogInput_yAxis;
 };
 
+//--------------------------------------------------------------
 //--------------------------------------------------------------
 class ofxOpenVR {
 
@@ -56,11 +61,14 @@ public:
 	Matrix4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
 	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
+	ofMatrix4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
+	ofMatrix4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
 
 	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
 	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
 	void setDrawControllers(bool bDrawControllers);
+	void setClearColor(ofFloatColor color);
 
 	void showMirrorWindow();
 	void hideMirrorWindow();
@@ -103,6 +111,8 @@ private:
 	bool _bGlFinishHack;
 	bool _bIsGLInit;
 	bool _bIsGridVisible;
+	
+	ofFloatColor _clearColor;
 
 	uint32_t _nRenderWidth;
 	uint32_t _nRenderHeight;
