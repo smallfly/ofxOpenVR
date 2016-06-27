@@ -246,7 +246,7 @@ bool ofxOpenVR::isControllerConnected(vr::ETrackedControllerRole nController)
 				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
 			}
 			else if (nController == vr::TrackedControllerRole_RightHand) {
-				return _pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID);
+				return _pHMD->IsTrackedDeviceConnected(_rightControllerDeviceID);
 			}
 		}
 	}
