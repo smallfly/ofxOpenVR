@@ -61,6 +61,7 @@ public:
 	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
 	void setDrawControllers(bool bDrawControllers);
+	void setClearColor(ofFloatColor color);
 
 	void showMirrorWindow();
 	void hideMirrorWindow();
@@ -103,6 +104,8 @@ private:
 	bool _bGlFinishHack;
 	bool _bIsGLInit;
 	bool _bIsGridVisible;
+	
+	ofFloatColor _clearColor;
 
 	uint32_t _nRenderWidth;
 	uint32_t _nRenderHeight;

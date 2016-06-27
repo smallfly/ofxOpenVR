@@ -42,6 +42,7 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_iValidPoseCount_Last = -1;
 	_bDrawControllers = false;
 	_bIsGridVisible = false;
+	_clearColor.set(.08f, .08f, .08f, 1.0f);
 
 	_controllersVbo.setMode(OF_PRIMITIVE_LINES);
 	_controllersVbo.disableTextures();
@@ -223,6 +224,12 @@ bool ofxOpenVR::isControllerConnected(vr::ETrackedControllerRole nController)
 void ofxOpenVR::setDrawControllers(bool bDrawControllers)
 {
 	_bDrawControllers = bDrawControllers;
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::setClearColor(ofFloatColor color)
+{
+	_clearColor.set(color);
 }
 
 //--------------------------------------------------------------
@@ -921,7 +928,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 //--------------------------------------------------------------
 void ofxOpenVR::renderStereoTargets()
 {
-	glClearColor(0.15f, 0.15f, 0.18f, 1.0f); // nice background color, but not black
+	glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 	glEnable(GL_MULTISAMPLE);
 
 	// Left Eye
