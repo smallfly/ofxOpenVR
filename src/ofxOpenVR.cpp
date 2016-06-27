@@ -1064,9 +1064,6 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
 
-	// User's render function
-	_callableRenderFunction(nEye);
-
 	// Don't continue if somebody else has input focus
 	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
 	{
@@ -1080,6 +1077,9 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 		_controllersVbo.draw();
 		_controllersTransformShader.end();
 	}
+
+	// User's render function
+	_callableRenderFunction(nEye);
 }
 
 //--------------------------------------------------------------
