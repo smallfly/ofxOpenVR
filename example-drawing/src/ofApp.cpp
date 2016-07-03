@@ -101,6 +101,7 @@ void ofApp::draw(){
 		_strHelp << "Press the Touchpad to star a new line." << endl;
 		_strHelp << "Press the Grip button to clear all the lines drawn with that specific controller." << endl;
 		_strHelp << "Drawing resolution " << polylineResolution << " (press: +/-)." << endl;
+		_strHelp << "Drawing default 3D models " << openVR.getRenderModelForTrackedDevices() << " (press: m)." << endl;
 		ofDrawBitmapStringHighlight(_strHelp.str(), ofPoint(10.0f, 20.0f), ofColor(ofColor::black, 100.0f));
 	}
 }
@@ -238,6 +239,10 @@ void ofApp::keyPressed(int key){
 
 		case 'h':
 			bShowHelp = !bShowHelp;
+			break;
+
+		case 'm':
+			openVR.setRenderModelForTrackedDevices(!openVR.getRenderModelForTrackedDevices());
 			break;
 
 		default:
