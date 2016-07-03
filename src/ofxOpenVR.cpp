@@ -43,6 +43,7 @@ void ofxOpenVR::setup(std::function< void(vr::Hmd_Eye) > f)
 	_bDrawControllers = false;
 	_bIsGridVisible = false;
 	_clearColor.set(.08f, .08f, .08f, 1.0f);
+	_bRenderModelForTrackedDevices = false;
 
 	_controllersVbo.setMode(OF_PRIMITIVE_LINES);
 	_controllersVbo.disableTextures();
@@ -62,6 +63,12 @@ void ofxOpenVR::exit()
 		vr::VR_Shutdown();
 		_pHMD = NULL;
 	}
+
+	for (std::vector< CGLRenderModel * >::iterator i = _vecRenderModels.begin(); i != _vecRenderModels.end(); i++)
+	{
+		delete (*i);
+	}
+	_vecRenderModels.clear();
 
 	if (_bIsGLInit)
 	{
@@ -86,8 +93,13 @@ void ofxOpenVR::exit()
 		{
 			glDeleteVertexArrays(1, &_unLensVAO);
 		}
+
+		_lensShader.unload();
+		_controllersTransformShader.unload();
+		_renderModelsShader.unload();
 	}
 
+	
 }
 
 
@@ -469,6 +481,37 @@ bool ofxOpenVR::createAllShaders()
 	_lensShader.bindDefaults();
 	_lensShader.linkProgram();
 
+	// Render models
+	vertex = "#version 410\n";
+	vertex += STRINGIFY(
+						uniform mat4 matrix;
+						layout(location = 0) in vec4 position;
+						layout(location = 1) in vec3 v3NormalIn;
+						layout(location = 2) in vec2 v2TexCoordsIn;
+						out vec2 v2TexCoord;
+						void main()
+						{
+							v2TexCoord = v2TexCoordsIn;
+							gl_Position = matrix * vec4(position.xyz, 1);
+						}
+					);
+
+	fragment = "#version 410\n";
+	fragment += STRINGIFY(
+							uniform sampler2D diffuse;
+							in vec2 v2TexCoord;
+							out vec4 outputColor;
+							void main()
+							{
+							   outputColor = texture( diffuse, v2TexCoord);
+							}
+						);
+
+	_renderModelsShader.setupShaderFromSource(GL_VERTEX_SHADER, vertex);
+	_renderModelsShader.setupShaderFromSource(GL_FRAGMENT_SHADER, fragment);
+	_renderModelsShader.bindDefaults();
+	_renderModelsShader.linkProgram();
+
 	return true;
 }
 
@@ -775,17 +818,6 @@ void ofxOpenVR::handleInput()
 	{
 		processVREvent(event);
 	}
-
-	// TODO - Check this.
-	// Process SteamVR controller state
-	for (vr::TrackedDeviceIndex_t unDevice = 0; unDevice < vr::k_unMaxTrackedDeviceCount; unDevice++)
-	{
-		vr::VRControllerState_t state;
-		if (_pHMD->GetControllerState(unDevice, &state))
-		{
-			_rbShowTrackedDevice[unDevice] = state.ulButtonPressed == 0;
-		}
-	}
 }
 
 
@@ -900,12 +932,11 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 			break;
 	}
 	
-	// TODO - Continue from here...
 	// Check event's type.
 	switch (event.eventType) {
 		case vr::VREvent_TrackedDeviceActivated:
 		{
-			//SetupRenderModelForTrackedDevice(event.trackedDeviceIndex);
+			setupRenderModelForTrackedDevice(event.trackedDeviceIndex);
 			printf("Device %u attached. Setting up render model.\n", event.trackedDeviceIndex);
 		}
 		break;
@@ -919,41 +950,6 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 		case vr::VREvent_TrackedDeviceUpdated:
 		{
 			printf("Device %u updated.\n", event.trackedDeviceIndex);
-		}
-		break;
-
-		case vr::VREvent_ButtonPress:
-		{
-			//_leftControllerDeviceID
-			vr::VRControllerState_t pControllerState;
-			vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &pControllerState);
-
-			if (_pHMD->GetControllerRoleForTrackedDeviceIndex(event.trackedDeviceIndex) == vr::TrackedControllerRole_LeftHand) {
-			//if (event.trackedDeviceIndex == _leftControllerDeviceID) {
-				printf("L Device %u button press %s - x:%4.2f - y:%4.2f.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button), pControllerState.rAxis->x, pControllerState.rAxis->y);
-				//GetControllerAxisTypeNameFromEnum(EVRControllerAxisType eAxisType)	
-			}
-			else {
-				printf("R Device %u button press %s - x:%4.2f - y:%4.2f.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button), pControllerState.rAxis->x, pControllerState.rAxis->y);
-			}
-		}
-		break;
-
-		case vr::VREvent_ButtonUnpress:
-		{
-			printf("Device %u button unpress %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
-		}
-		break;
-
-		case vr::VREvent_ButtonTouch:
-		{
-			printf("Device %u button touch %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
-		}
-		break;
-
-		case vr::VREvent_ButtonUntouch:
-		{
-			printf("Device %ubutton untouch %s.\n", event.trackedDeviceIndex, vr::VRSystem()->GetButtonIdNameFromEnum((vr::EVRButtonId)event.data.controller.button));
 		}
 		break;
 	}			
@@ -1011,9 +1007,10 @@ void ofxOpenVR::renderStereoTargets()
 void ofxOpenVR::drawControllers()
 {
 	// Don't draw controllers if somebody else has input focus
-	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
+	if (_pHMD->IsInputFocusCapturedByAnotherProcess()) {
 		return;
-
+	}
+		
 	_controllersVbo.clear();
 	
 	// Left controller
@@ -1065,8 +1062,7 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 	glEnable(GL_DEPTH_TEST);
 
 	// Don't continue if somebody else has input focus
-	if (_pHMD->IsInputFocusCapturedByAnotherProcess())
-	{
+	if (_pHMD->IsInputFocusCapturedByAnotherProcess()) {
 		return;
 	}
 
@@ -1076,6 +1072,35 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 		_controllersTransformShader.setUniformMatrix4f("matrix", getCurrentViewProjectionMatrix(nEye), 1);
 		_controllersVbo.draw();
 		_controllersTransformShader.end();
+	}
+
+
+	// Render default devices models 
+	if (_bRenderModelForTrackedDevices) {
+		_renderModelsShader.begin();
+
+		for (uint32_t unTrackedDevice = 0; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++) {
+			if (!_rTrackedDeviceToRenderModel[unTrackedDevice])
+				continue;
+
+			const vr::TrackedDevicePose_t & pose = _rTrackedDevicePose[unTrackedDevice];
+			if (!pose.bPoseIsValid) {
+				continue;
+			}
+				
+			if (_pHMD->IsInputFocusCapturedByAnotherProcess() && _pHMD->GetTrackedDeviceClass(unTrackedDevice) == vr::TrackedDeviceClass_Controller) {
+				continue;
+			}
+				
+			const Matrix4 & matDeviceToTracking = _rmat4DevicePose[unTrackedDevice];
+			ofMatrix4x4 matrix(matDeviceToTracking.get());
+			ofMatrix4x4 matMVP = matrix * getCurrentViewProjectionMatrix(nEye);
+
+			_renderModelsShader.setUniformMatrix4f("matrix", matMVP, 1);
+			_rTrackedDeviceToRenderModel[unTrackedDevice]->Draw();
+		}
+
+		_renderModelsShader.end();
 	}
 
 	// User's render function
@@ -1114,7 +1139,6 @@ void ofxOpenVR::renderDistortion()
 //--------------------------------------------------------------
 void ofxOpenVR::drawDebugInfo(float x, float y)
 {
-
 	_strPoseClassesOSS << endl;
 	_strPoseClassesOSS << "System Name: " << _strTrackingSystemName << endl;
 	_strPoseClassesOSS << "System S/N: " << _strTrackingSystemModelNumber << endl;
@@ -1134,3 +1158,119 @@ Matrix4 ofxOpenVR::convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPos
 	return matrixObj;
 }
 
+//--------------------------------------------------------------
+void ofxOpenVR::setRenderModelForTrackedDevices(bool bRender)
+{
+	_bRenderModelForTrackedDevices = bRender;
+
+	if (_bRenderModelForTrackedDevices) {
+		setupRenderModels();
+	}
+}
+
+//--------------------------------------------------------------
+bool ofxOpenVR::getRenderModelForTrackedDevices()
+{
+	return _bRenderModelForTrackedDevices;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Finds a render model we've already loaded or loads a new one
+//-----------------------------------------------------------------------------
+CGLRenderModel *ofxOpenVR::findOrLoadRenderModel(const char *pchRenderModelName)
+{
+	CGLRenderModel *pRenderModel = NULL;
+	for (std::vector< CGLRenderModel * >::iterator i = _vecRenderModels.begin(); i != _vecRenderModels.end(); i++) {
+		if (!stricmp((*i)->GetName().c_str(), pchRenderModelName)) {
+			pRenderModel = *i;
+			break;
+		}
+	}
+
+	// load the model if we didn't find one
+	if (!pRenderModel) {
+		vr::RenderModel_t *pModel;
+		vr::EVRRenderModelError error;
+		while (1) {
+			error = vr::VRRenderModels()->LoadRenderModel_Async(pchRenderModelName, &pModel);
+			if (error != vr::VRRenderModelError_Loading)
+				break;
+
+			Sleep(1);
+		}
+
+		if (error != vr::VRRenderModelError_None) {
+			printf("Unable to load render model %s - %s\n", pchRenderModelName, vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
+			return NULL; // move on to the next tracked device
+		}
+
+		vr::RenderModel_TextureMap_t *pTexture;
+		while (1) {
+			error = vr::VRRenderModels()->LoadTexture_Async(pModel->diffuseTextureId, &pTexture);
+			if (error != vr::VRRenderModelError_Loading)
+				break;
+
+			Sleep(1);
+		}
+
+		if (error != vr::VRRenderModelError_None) {
+			printf("Unable to load render texture id:%d for render model %s\n", pModel->diffuseTextureId, pchRenderModelName);
+			vr::VRRenderModels()->FreeRenderModel(pModel);
+			return NULL; // move on to the next tracked device
+		}
+
+		pRenderModel = new CGLRenderModel(pchRenderModelName);
+		if (!pRenderModel->BInit(*pModel, *pTexture)) {
+			printf("Unable to create GL model from render model %s\n", pchRenderModelName);
+			delete pRenderModel;
+			pRenderModel = NULL;
+		}
+		else {
+			_vecRenderModels.push_back(pRenderModel);
+		}
+		vr::VRRenderModels()->FreeRenderModel(pModel);
+		vr::VRRenderModels()->FreeTexture(pTexture);
+	}
+	return pRenderModel;
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Create/destroy GL a Render Model for a single tracked device
+//-----------------------------------------------------------------------------
+void ofxOpenVR::setupRenderModelForTrackedDevice(vr::TrackedDeviceIndex_t unTrackedDeviceIndex)
+{
+	if (unTrackedDeviceIndex >= vr::k_unMaxTrackedDeviceCount) {
+		return;
+	}
+		
+	// try to find a model we've already set up
+	std::string sRenderModelName = getTrackedDeviceString(_pHMD, unTrackedDeviceIndex, vr::Prop_RenderModelName_String);
+	CGLRenderModel *pRenderModel = findOrLoadRenderModel(sRenderModelName.c_str());
+	if (!pRenderModel) {
+		std::string sTrackingSystemName = getTrackedDeviceString(_pHMD, unTrackedDeviceIndex, vr::Prop_TrackingSystemName_String);
+		printf("Unable to load render model for tracked device %d (%s.%s)", unTrackedDeviceIndex, sTrackingSystemName.c_str(), sRenderModelName.c_str());
+	}
+	else {
+		_rTrackedDeviceToRenderModel[unTrackedDeviceIndex] = pRenderModel;
+	}
+}
+
+//-----------------------------------------------------------------------------
+// Purpose: Create/destroy GL Render Models
+//-----------------------------------------------------------------------------
+void ofxOpenVR::setupRenderModels()
+{	
+	memset(_rTrackedDeviceToRenderModel, 0, sizeof(_rTrackedDeviceToRenderModel));
+
+	if (!_pHMD) {
+		return;
+	}
+		
+	for (uint32_t unTrackedDevice = vr::k_unTrackedDeviceIndex_Hmd + 1; unTrackedDevice < vr::k_unMaxTrackedDeviceCount; unTrackedDevice++) {
+		if (!_pHMD->IsTrackedDeviceConnected(unTrackedDevice)) {
+			continue;
+		}
+		
+		setupRenderModelForTrackedDevice(unTrackedDevice);
+	}
+}

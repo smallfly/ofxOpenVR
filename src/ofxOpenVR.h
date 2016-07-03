@@ -3,6 +3,7 @@
 #include "ofMain.h"
 #include <openvr.h>
 #include "Matrices.h"
+#include "CGLRenderModel.h"
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -73,6 +74,9 @@ public:
 	void showMirrorWindow();
 	void hideMirrorWindow();
 
+	void setRenderModelForTrackedDevices(bool bRender);
+	bool getRenderModelForTrackedDevices();
+
 	void toggleGrid(float transitionDuration = 2.0f);
 	void showGrid(float transitionDuration = 2.0f);
 	void hideGrid(float transitionDuration = 2.0f);
@@ -127,7 +131,6 @@ private:
 	std::string _strTrackingSystemModelNumber;
 	vr::TrackedDevicePose_t _rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
 	Matrix4 _rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
-	bool _rbShowTrackedDevice[vr::k_unMaxTrackedDeviceCount];
 
 	int _iTrackedControllerCount;
 	int _iTrackedControllerCount_Last;
@@ -180,4 +183,13 @@ private:
 	void renderScene(vr::Hmd_Eye nEye);
 
 	Matrix4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);	
+
+	bool _bRenderModelForTrackedDevices;
+	ofShader _renderModelsShader;
+	CGLRenderModel* findOrLoadRenderModel(const char *pchRenderModelName);
+	void setupRenderModelForTrackedDevice(vr::TrackedDeviceIndex_t unTrackedDeviceIndex);
+	void setupRenderModels();
+
+	std::vector< CGLRenderModel * > _vecRenderModels;
+	CGLRenderModel *_rTrackedDeviceToRenderModel[vr::k_unMaxTrackedDeviceCount];
 };
