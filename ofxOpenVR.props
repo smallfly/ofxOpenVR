@@ -18,6 +18,7 @@
     </Link>
     <PostBuildEvent>
       <Command>robocopy "$(OF_ROOT)/export/vs/Win32/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
+if errorlevel 1 echo Copy successful else exit %errorlevel%
 robocopy "$(OF_ROOT)/addons/ofxOpenVR/libs/OpenVR/bin/win32/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
       if errorlevel 1 exit 0 else exit %errorlevel%</Command>
     </PostBuildEvent>
@@ -35,6 +36,7 @@ robocopy "$(OF_ROOT)/addons/ofxOpenVR/libs/OpenVR/bin/win32/" "$(ProjectDir)bin/
     </Link>
     <PostBuildEvent>
       <Command>robocopy "$(OF_ROOT)/export/vs/$(Platform_Actual)/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
+if errorlevel 1 echo Copy successful else exit %errorlevel%
 robocopy "$(OF_ROOT)/addons/ofxOpenVR/libs/OpenVR/bin/win64/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
       if errorlevel 1 exit 0 else exit %errorlevel%</Command>
     </PostBuildEvent>
