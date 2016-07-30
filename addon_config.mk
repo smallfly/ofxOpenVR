@@ -18,7 +18,7 @@ meta:
 	ADDON_NAME = ofxOpenVR
 	ADDON_DESCRIPTION = Addon to access VR hardware using the OpenVR API from Valve Software
 	ADDON_AUTHOR = Hugues Bruyère
-	ADDON_TAGS = "VR" "OpenVR" "SteamVR"
+	ADDON_TAGS = "VR" "OpenVR" "SteamVR" "HTC Vive" "Oculus Rift"
 	ADDON_URL = http://github.com/smallfly/ofxOpenVR
 
 common:
@@ -64,9 +64,16 @@ vs:
 	ADDON_INCLUDES_EXCLUDE = ..\..\..\addons\ofxOpenVR\libs
 	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR
 	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\bin
-	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\bin\win32
-	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\bin\win64
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\bin\%
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\bin\%
 	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\lib
-	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\lib\win32
-	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\lib\win64
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\lib\%
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\lib\%
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\samples
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\samples\%
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\unity_package
+	ADDON_INCLUDES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\unity_package\%
 
+	ADDON_SOURCES_EXCLUDE = ..\..\..\addons\ofxOpenVR\libs\OpenVR\samples
+	ADDON_SOURCES_EXCLUDE += ..\..\..\addons\ofxOpenVR\libs\OpenVR\samples\%
+	
