@@ -1,4 +1,4 @@
-ofxOpenVR (WIP)
+ofxOpenVR 
 ====================
 
 Implementation of Valve Software's [OpenVR](https://github.com/ValveSoftware/openvr) API.
