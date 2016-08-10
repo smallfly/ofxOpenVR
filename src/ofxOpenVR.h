@@ -63,8 +63,6 @@ public:
 	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
-	ofMatrix4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
-	ofMatrix4x4 getCurrentEyeMatrix(vr::Hmd_Eye nEye);
 
 	ofMatrix4x4 getCurrentHMDMatrix(); 
 	void setCurrentHMDMatrix(ofMatrix4x4 & mat); 
