@@ -87,6 +87,7 @@ public:
 
 	void setNearClip(float near);
 	void setFarClip(float far);
+	void setFOV(float fov);
 
 	ofEvent<ofxOpenVRControllerEventArgs> ofxOpenVRControllerEvent;
 

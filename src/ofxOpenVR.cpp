@@ -235,23 +235,6 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
-ofMatrix4x4 ofxOpenVR::getCurrentEyeMatrix(vr::Hmd_Eye nEye) {
-
-	Matrix4 matV;
-	if (nEye == vr::Eye_Left)
-	{
-		matV = _mat4eyePosLeft;
-	}
-	else if (nEye == vr::Eye_Right)
-	{
-		matV = _mat4eyePosRight;
-	}
-
-	ofMatrix4x4 matrix(matV.get());
-	return matrix;
-}
-
-//--------------------------------------------------------------
 
 ofMatrix4x4 ofxOpenVR::getCurrentHMDMatrix() {
 
