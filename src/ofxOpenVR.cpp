@@ -1144,6 +1144,7 @@ void ofxOpenVR::renderDistortion()
 {
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, ofGetWidth(), ofGetHeight());
+	
 	glBindVertexArray(_unLensVAO);
 	_lensShader.begin();
 
