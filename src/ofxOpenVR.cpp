@@ -235,6 +235,20 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
+
+ofMatrix4x4 ofxOpenVR::getCurrentHMDMatrix() {
+
+	return ofMatrix4x4(_mat4HMDPose.get()); 
+}
+
+//--------------------------------------------------------------
+
+void ofxOpenVR::setCurrentHMDMatrix(ofMatrix4x4 & mat) {
+
+	_mat4HMDPose.set(mat.getPtr());
+}
+
+//--------------------------------------------------------------
 ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 {
 	ofMatrix4x4 matrix;
@@ -313,6 +327,24 @@ void ofxOpenVR::hideGrid(float transitionDuration)
 		_bIsGridVisible = false;
 		vr::VRCompositor()->FadeGrid(transitionDuration, _bIsGridVisible);
 	}
+}
+
+//--------------------------------------------------------------
+
+void ofxOpenVR::setNearClip(float nearClip) {
+
+	_fNearClip = nearClip;
+
+	setupCameras();
+}
+
+//--------------------------------------------------------------
+
+void ofxOpenVR::setFarClip(float farClip){
+
+	_fFarClip = farClip;
+
+	setupCameras();
 }
 
 //--------------------------------------------------------------
@@ -1112,7 +1144,7 @@ void ofxOpenVR::renderDistortion()
 {
 	glDisable(GL_DEPTH_TEST);
 	glViewport(0, 0, ofGetWidth(), ofGetHeight());
-
+	
 	glBindVertexArray(_unLensVAO);
 	_lensShader.begin();
 

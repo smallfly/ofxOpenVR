@@ -65,6 +65,9 @@ public:
 	ofMatrix4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
 	ofMatrix4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
 
+	ofMatrix4x4 getCurrentHMDMatrix(); 
+	void setCurrentHMDMatrix(ofMatrix4x4 & mat); 
+
 	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
 	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
@@ -81,6 +84,9 @@ public:
 	void showGrid(float transitionDuration = 2.0f);
 	void hideGrid(float transitionDuration = 2.0f);
 
+	void setNearClip(float near);
+	void setFarClip(float far);
+	
 	ofEvent<ofxOpenVRControllerEventArgs> ofxOpenVRControllerEvent;
 
 private:
