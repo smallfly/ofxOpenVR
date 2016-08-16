@@ -94,6 +94,9 @@ void ofApp::update(){
 //--------------------------------------------------------------
 void ofApp::draw(){
 	
+	ofEnableLighting();
+	ofEnableDepthTest();
+	
 	_openVR.render();
 
 	_openVR.renderDistortion();
