@@ -130,8 +130,8 @@ void ofApp::draw(){
 void  ofApp::render(vr::Hmd_Eye nEye)
 {
 	// OF textured cube
-	ofMatrix4x4 currentViewProjectionMatrix = _openVR.getCurrentViewProjectionMatrix(nEye);
-	ofMatrix4x4 hdmPoseMat = _translateMatrix * currentViewProjectionMatrix;
+	glm::mat4x4 currentViewProjectionMatrix = _openVR.getCurrentViewProjectionMatrix(nEye);
+	glm::mat4x4 hdmPoseMat = _translateMatrix * currentViewProjectionMatrix;
 
 	_shader.begin();
 	_shader.setUniformMatrix4f("matrix", hdmPoseMat, 1);
@@ -141,7 +141,7 @@ void  ofApp::render(vr::Hmd_Eye nEye)
 
 	// Left controller
 	if (_openVR.isControllerConnected(vr::TrackedControllerRole_LeftHand)) {
-		ofMatrix4x4 leftControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_LeftHand) * currentViewProjectionMatrix;
+		glm::mat4x4 leftControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_LeftHand) * currentViewProjectionMatrix;
 
 		_controllersShader.begin();
 		_controllersShader.setUniformMatrix4f("matrix", leftControllerPoseMat, 1);
@@ -151,7 +151,7 @@ void  ofApp::render(vr::Hmd_Eye nEye)
 
 	// Right controller
 	if (_openVR.isControllerConnected(vr::TrackedControllerRole_RightHand)) {
-		ofMatrix4x4 rightControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_RightHand) * currentViewProjectionMatrix;
+		glm::mat4x4 rightControllerPoseMat = _openVR.getControllerPose(vr::TrackedControllerRole_RightHand) * currentViewProjectionMatrix;
 
 		_controllersShader.begin();
 		_controllersShader.setUniformMatrix4f("matrix", rightControllerPoseMat, 1);

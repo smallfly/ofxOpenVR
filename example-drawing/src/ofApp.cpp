@@ -64,7 +64,8 @@ void ofApp::update(){
 
 	if (bIsLeftTriggerPressed) {
 		if (openVR.isControllerConnected(vr::TrackedControllerRole_LeftHand)) {
-			leftControllerPosition = openVR.getControllerPose(vr::TrackedControllerRole_LeftHand).getTranslation();
+			// Getting the translation component of the controller pose matrix
+			leftControllerPosition = openVR.getControllerPose(vr::TrackedControllerRole_LeftHand)[3];
 
 			if (lastLeftControllerPosition.distance(leftControllerPosition) >= polylineResolution) {
 				leftControllerPolylines[leftControllerPolylines.size() - 1].lineTo(leftControllerPosition);
@@ -75,7 +76,8 @@ void ofApp::update(){
 
 	if (bIsRightTriggerPressed) {
 		if (openVR.isControllerConnected(vr::TrackedControllerRole_RightHand)) {
-			rightControllerPosition = openVR.getControllerPose(vr::TrackedControllerRole_RightHand).getTranslation();
+			// Getting the translation component of the controller pose matrix
+			rightControllerPosition = openVR.getControllerPose(vr::TrackedControllerRole_RightHand)[3];
 
 			if (lastRightControllerPosition.distance(rightControllerPosition) >= polylineResolution) {
 				rightControllerPolylines[rightControllerPolylines.size() - 1].lineTo(rightControllerPosition);

@@ -151,14 +151,14 @@ void ofxOpenVR::render()
 }
 
 //--------------------------------------------------------------
-Matrix4 ofxOpenVR::getHMDMatrixProjectionEye(vr::Hmd_Eye nEye)
+glm::mat4x4 ofxOpenVR::getHMDMatrixProjectionEye(vr::Hmd_Eye nEye)
 {
 	if (!_pHMD)
-		return Matrix4();
+		return glm::mat4x4();
 
 	vr::HmdMatrix44_t mat = _pHMD->GetProjectionMatrix(nEye, _fNearClip, _fFarClip, vr::API_OpenGL);
 
-	return Matrix4(
+	return glm::mat4x4(
 		mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
 		mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
 		mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
@@ -167,26 +167,26 @@ Matrix4 ofxOpenVR::getHMDMatrixProjectionEye(vr::Hmd_Eye nEye)
 }
 
 //--------------------------------------------------------------
-Matrix4 ofxOpenVR::getHMDMatrixPoseEye(vr::Hmd_Eye nEye)
+glm::mat4x4 ofxOpenVR::getHMDMatrixPoseEye(vr::Hmd_Eye nEye)
 {
 	if (!_pHMD)
-		return Matrix4();
+		return glm::mat4x4();
 
 	vr::HmdMatrix34_t matEyeRight = _pHMD->GetEyeToHeadTransform(nEye);
-	Matrix4 matrixObj(
+	glm::mat4x4 matrixObj(
 		matEyeRight.m[0][0], matEyeRight.m[1][0], matEyeRight.m[2][0], 0.0,
 		matEyeRight.m[0][1], matEyeRight.m[1][1], matEyeRight.m[2][1], 0.0,
 		matEyeRight.m[0][2], matEyeRight.m[1][2], matEyeRight.m[2][2], 0.0,
 		matEyeRight.m[0][3], matEyeRight.m[1][3], matEyeRight.m[2][3], 1.0f
 	);
 
-	return matrixObj.invert();
+	return glm::inverse(matrixObj);
 }
 
 //--------------------------------------------------------------
-ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
+glm::mat4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 {
-	Matrix4 matMVP;
+	glm::mat4x4 matMVP;
 	if (nEye == vr::Eye_Left)
 	{
 		matMVP = _mat4ProjectionLeft * _mat4eyePosLeft * _mat4HMDPose;
@@ -196,14 +196,13 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
 		matMVP = _mat4ProjectionRight * _mat4eyePosRight *  _mat4HMDPose;
 	}
 
-	ofMatrix4x4 matrix(matMVP.get());
-	return matrix;
+	return matMVP;
 }
 
 //--------------------------------------------------------------
-ofMatrix4x4 ofxOpenVR::getCurrentProjectionMatrix(vr::Hmd_Eye nEye)
+glm::mat4x4 ofxOpenVR::getCurrentProjectionMatrix(vr::Hmd_Eye nEye)
 {
-	Matrix4 matP;
+	glm::mat4x4 matP;
 	if (nEye == vr::Eye_Left)
 	{
 		matP = _mat4ProjectionLeft;
@@ -213,14 +212,13 @@ ofMatrix4x4 ofxOpenVR::getCurrentProjectionMatrix(vr::Hmd_Eye nEye)
 		matP = _mat4ProjectionRight;
 	}
 
-	ofMatrix4x4 matrix(matP.get());
-	return matrix;
+	return matP;
 }
 
 //--------------------------------------------------------------
-ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
+glm::mat4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
 {
-	Matrix4 matV;
+	glm::mat4x4 matV;
 	if (nEye == vr::Eye_Left)
 	{
 		matV = _mat4eyePosLeft * _mat4HMDPose;
@@ -230,20 +228,19 @@ ofMatrix4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
 		matV = _mat4eyePosRight *  _mat4HMDPose;
 	}
 
-	ofMatrix4x4 matrix(matV.get());
-	return matrix;
+	return matV;
 }
 
 //--------------------------------------------------------------
-ofMatrix4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
+glm::mat4x4 ofxOpenVR::getControllerPose(vr::ETrackedControllerRole nController)
 {
-	ofMatrix4x4 matrix;
+	glm::mat4x4 matrix;
 
 	if (nController == vr::TrackedControllerRole_LeftHand) {
-		matrix.set(_mat4LeftControllerPose.get());
+		matrix = _mat4LeftControllerPose;
 	}
 	else if (nController == vr::TrackedControllerRole_RightHand) {
-		matrix.set(_mat4RightControllerPose.get());
+		matrix = _mat4RightControllerPose;
 	}
 
 	return matrix;
@@ -596,13 +593,13 @@ void ofxOpenVR::setupDistortion()
 		for (int x = 0; x<_iLensGridSegmentCountH; x++)
 		{
 			u = x*w; v = 1 - y*h;
-			vert.position = Vector2(Xoffset + u, -1 + 2 * y*h);
+			vert.position = glm::vec2(Xoffset + u, -1 + 2 * y*h);
 
 			vr::DistortionCoordinates_t dc0 = _pHMD->ComputeDistortion(vr::Eye_Left, u, v);
 
-			vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
-			vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
-			vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
+			vert.texCoordRed = glm::vec2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
+			vert.texCoordGreen = glm::vec2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
+			vert.texCoordBlue = glm::vec2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
 
 			vVerts.push_back(vert);
 		}
@@ -615,13 +612,13 @@ void ofxOpenVR::setupDistortion()
 		for (int x = 0; x<_iLensGridSegmentCountH; x++)
 		{
 			u = x*w; v = 1 - y*h;
-			vert.position = Vector2(Xoffset + u, -1 + 2 * y*h);
+			vert.position = glm::vec2(Xoffset + u, -1 + 2 * y*h);
 
 			vr::DistortionCoordinates_t dc0 = _pHMD->ComputeDistortion(vr::Eye_Right, u, v);
 
-			vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
-			vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
-			vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
+			vert.texCoordRed = glm::vec2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
+			vert.texCoordGreen = glm::vec2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
+			vert.texCoordBlue = glm::vec2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
 
 			vVerts.push_back(vert);
 		}
@@ -799,7 +796,7 @@ void ofxOpenVR::updateDevicesMatrixPose()
 	// Store HDM's matrix
 	if (_rTrackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
 	{
-		_mat4HMDPose = _rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd].invert();
+		_mat4HMDPose = glm::inverse(_rmat4DevicePose[vr::k_unTrackedDeviceIndex_Hmd]);
 	}
 
 	// Aad more info to the debug panel.
@@ -1015,12 +1012,12 @@ void ofxOpenVR::drawControllers()
 	
 	// Left controller
 	if (_pHMD->IsTrackedDeviceConnected(_leftControllerDeviceID)) {
-		Vector4 center = _mat4LeftControllerPose * Vector4(0, 0, 0, 1);
+		glm::vec4 center = _mat4LeftControllerPose * glm::vec4(0, 0, 0, 1);
 
 		for (int i = 0; i < 3; ++i)
 		{
-			Vector3 color(0, 0, 0);
-			Vector4 point(0, 0, 0, 1);
+			glm::vec3 color(0, 0, 0);
+			glm::vec4 point(0, 0, 0, 1);
 			point[i] += 0.05f;  // offset in X, Y, Z
 			color[i] = 1.0;  // R, G, B
 			point = _mat4LeftControllerPose * point;
@@ -1035,12 +1032,12 @@ void ofxOpenVR::drawControllers()
 	
 	// Right controller
 	if (_pHMD->IsTrackedDeviceConnected(_rightControllerDeviceID)) {
-		Vector4 center = _mat4RightControllerPose * Vector4(0, 0, 0, 1);
+		glm::vec4 center = _mat4RightControllerPose * glm::vec4(0, 0, 0, 1);
 
 		for (int i = 0; i < 3; ++i)
 		{
-			Vector3 color(0, 0, 0);
-			Vector4 point(0, 0, 0, 1);
+			glm::vec3 color(0, 0, 0);
+			glm::vec4 point(0, 0, 0, 1);
 			point[i] += 0.05f;  // offset in X, Y, Z
 			color[i] = 1.0;  // R, G, B
 			point = _mat4RightControllerPose * point;
@@ -1092,9 +1089,7 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 				continue;
 			}
 				
-			const Matrix4 & matDeviceToTracking = _rmat4DevicePose[unTrackedDevice];
-			ofMatrix4x4 matrix(matDeviceToTracking.get());
-			ofMatrix4x4 matMVP = matrix * getCurrentViewProjectionMatrix(nEye);
+			glm::mat4x4 matMVP = _rmat4DevicePose[unTrackedDevice] * getCurrentViewProjectionMatrix(nEye);
 
 			_renderModelsShader.setUniformMatrix4f("matrix", matMVP, 1);
 			_rTrackedDeviceToRenderModel[unTrackedDevice]->Draw();
@@ -1147,9 +1142,9 @@ void ofxOpenVR::drawDebugInfo(float x, float y)
 }
 
 //--------------------------------------------------------------
-Matrix4 ofxOpenVR::convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose)
+glm::mat4x4 ofxOpenVR::convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose)
 {
-	Matrix4 matrixObj(
+	glm::mat4x4 matrixObj(
 		matPose.m[0][0], matPose.m[1][0], matPose.m[2][0], 0.0,
 		matPose.m[0][1], matPose.m[1][1], matPose.m[2][1], 0.0,
 		matPose.m[0][2], matPose.m[1][2], matPose.m[2][2], 0.0,

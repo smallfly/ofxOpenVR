@@ -2,7 +2,6 @@
 
 #include "ofMain.h"
 #include <openvr.h>
-#include "Matrices.h"
 #include "CGLRenderModel.h"
 
 //--------------------------------------------------------------
@@ -59,13 +58,13 @@ public:
 
 	void drawDebugInfo(float x = 10.0f, float y = 20.0f);
 
-	Matrix4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
-	Matrix4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
-	ofMatrix4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
-	ofMatrix4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
-	ofMatrix4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
+	glm::mat4x4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
+	glm::mat4x4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
+	glm::mat4x4 getCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
+	glm::mat4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
+	glm::mat4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
 
-	ofMatrix4x4 getControllerPose(vr::ETrackedControllerRole nController);
+	glm::mat4x4 getControllerPose(vr::ETrackedControllerRole nController);
 	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
 	void setDrawControllers(bool bDrawControllers);
@@ -87,16 +86,16 @@ private:
 
 	struct VertexDataScene
 	{
-		Vector3 position;
-		Vector2 texCoord;
+		glm::vec3 position;
+		glm::vec2 texCoord;
 	};
 
 	struct VertexDataLens
 	{
-		Vector2 position;
-		Vector2 texCoordRed;
-		Vector2 texCoordGreen;
-		Vector2 texCoordBlue;
+		glm::vec2 position;
+		glm::vec2 texCoordRed;
+		glm::vec2 texCoordGreen;
+		glm::vec2 texCoordBlue;
 	};
 
 	struct FramebufferDesc
@@ -130,7 +129,7 @@ private:
 	std::string _strTrackingSystemName;
 	std::string _strTrackingSystemModelNumber;
 	vr::TrackedDevicePose_t _rTrackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-	Matrix4 _rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
+	glm::mat4x4 _rmat4DevicePose[vr::k_unMaxTrackedDeviceCount];
 
 	int _iTrackedControllerCount;
 	int _iTrackedControllerCount_Last;
@@ -145,18 +144,18 @@ private:
 	GLuint _glIDIndexBuffer;
 	unsigned int _uiIndexSize;
 
-	Matrix4 _mat4HMDPose;
-	Matrix4 _mat4eyePosLeft;
-	Matrix4 _mat4eyePosRight;
+	glm::mat4x4 _mat4HMDPose;
+	glm::mat4x4 _mat4eyePosLeft;
+	glm::mat4x4 _mat4eyePosRight;
 
-	Matrix4 _mat4ProjectionCenter;
-	Matrix4 _mat4ProjectionLeft;
-	Matrix4 _mat4ProjectionRight;
+	glm::mat4x4 _mat4ProjectionCenter;
+	glm::mat4x4 _mat4ProjectionLeft;
+	glm::mat4x4 _mat4ProjectionRight;
 
 	int _leftControllerDeviceID;
 	int _rightControllerDeviceID;
-	Matrix4 _mat4LeftControllerPose;
-	Matrix4 _mat4RightControllerPose;
+	glm::mat4x4 _mat4LeftControllerPose;
+	glm::mat4x4 _mat4RightControllerPose;
 
 	bool _bDrawControllers;
 	ofVboMesh _controllersVbo;
@@ -182,7 +181,7 @@ private:
 	void drawControllers();
 	void renderScene(vr::Hmd_Eye nEye);
 
-	Matrix4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);	
+	glm::mat4x4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);
 
 	bool _bRenderModelForTrackedDevices;
 	ofShader _renderModelsShader;
