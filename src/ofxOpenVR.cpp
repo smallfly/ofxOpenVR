@@ -1,4 +1,5 @@
 #include "ofxOpenVR.h"
+#include <glm/gtx/matrix_decompose.hpp>
 
 #define STRINGIFY(A) #A
 
@@ -229,6 +230,34 @@ glm::mat4x4 ofxOpenVR::getCurrentViewMatrix(vr::Hmd_Eye nEye)
 	}
 
 	return matV;
+}
+
+//--------------------------------------------------------------
+void ofxOpenVR::applyTranslation(glm::vec3 & vec)
+{
+	// Decompose the HMD's matrix in order to get the rotation component
+	//glm::vec3 scale;
+	//glm::quat rotation;
+	//glm::vec3 translation;
+	//glm::vec3 skew;
+	//glm::vec4 perspective;
+
+	//glm::decompose(_mat4HMDPose, scale, rotation, translation, skew, perspective);
+	//rotation = glm::conjugate(rotation);
+
+	//// Create a new matrix from the HDM's rotation
+	//glm::mat4x4 newHmdMatrix = glm::mat4_cast(rotation);
+
+	//glm::vec3 hdmTrans = translation + vec;
+
+	// Apply the camera's translation
+	glm::mat4x4 newHmdMatrix = glm::translate(_mat4HMDPose, vec);
+	
+	//glm::vec3 contTrans = glm::vec3(-vec.z, -vec.x, .0f);
+	_mat4LeftControllerPose = glm::translate(_mat4LeftControllerPose, -vec);
+	_mat4RightControllerPose = glm::translate(_mat4RightControllerPose, -vec);
+
+	_mat4HMDPose = newHmdMatrix;
 }
 
 //--------------------------------------------------------------

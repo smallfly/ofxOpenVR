@@ -64,6 +64,8 @@ public:
 	glm::mat4x4 getCurrentProjectionMatrix(vr::Hmd_Eye nEye);
 	glm::mat4x4 getCurrentViewMatrix(vr::Hmd_Eye nEye);
 
+	void applyTranslation(glm::vec3 & vec);
+
 	glm::mat4x4 getControllerPose(vr::ETrackedControllerRole nController);
 	bool isControllerConnected(vr::ETrackedControllerRole nController);
 
