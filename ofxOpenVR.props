@@ -35,7 +35,7 @@ robocopy "$(OF_ROOT)/addons/ofxOpenVR/libs/OpenVR/bin/win32/" "$(ProjectDir)bin/
       <AdditionalDependencies>openvr_api.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>robocopy "$(OF_ROOT)/export/vs/$(Platform_Actual)/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
+      <Command>for /d %%f in ($(OF_ROOT)\libs\*) do (if exist %%f\lib\vs\$(Platform_Actual)\*.dll ( robocopy "%%f\lib\vs\$(Platform_Actual)" "$(ProjectDir)bin" "*.dll" /njs /njh /np /fp /bytes ))
 if errorlevel 1 echo Copy successful else exit %errorlevel%
 robocopy "$(OF_ROOT)/addons/ofxOpenVR/libs/OpenVR/bin/win64/" "$(ProjectDir)bin/" "*.dll" /njs /njh /np /fp /bytes
       if errorlevel 1 exit 0 else exit %errorlevel%</Command>
