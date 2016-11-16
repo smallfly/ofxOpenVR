@@ -288,6 +288,17 @@ void ofxOpenVR::hideMirrorWindow()
 }
 
 //--------------------------------------------------------------
+void ofxOpenVR::toggleMirrorWindow()
+{
+	if (vr::VRCompositor()->IsMirrorWindowVisible()) {
+		vr::VRCompositor()->HideMirrorWindow();
+	}
+	else {
+		vr::VRCompositor()->ShowMirrorWindow();
+	}
+}
+
+//--------------------------------------------------------------
 void ofxOpenVR::toggleGrid(float transitionDuration)
 {
 	_bIsGridVisible = !_bIsGridVisible;

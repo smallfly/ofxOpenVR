@@ -72,6 +72,7 @@ public:
 
 	void showMirrorWindow();
 	void hideMirrorWindow();
+	void toggleMirrorWindow();
 
 	void setRenderModelForTrackedDevices(bool bRender);
 	bool getRenderModelForTrackedDevices();
