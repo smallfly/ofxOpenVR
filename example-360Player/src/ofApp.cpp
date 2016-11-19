@@ -11,7 +11,7 @@ void ofApp::setup(){
 	// We need to pass the method we want ofxOpenVR to call when rending the scene
 	openVR.setup(std::bind(&ofApp::render, this, std::placeholders::_1));
 
-	image.load("DSCN0092.JPG");
+	image.load("DSCN0143.JPG");
 	shader.load("sphericalProjection");
 
 	sphere.set(10, 10);
