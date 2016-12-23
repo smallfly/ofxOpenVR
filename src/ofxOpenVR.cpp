@@ -134,9 +134,9 @@ void ofxOpenVR::render()
 	{
 		renderStereoTargets(); 
 
-		vr::Texture_t leftEyeTexture = { (void*)leftEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::Texture_t leftEyeTexture = { (void*)leftEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-		vr::Texture_t rightEyeTexture = { (void*)rightEyeDesc._nResolveTextureId, vr::API_OpenGL, vr::ColorSpace_Gamma };
+		vr::Texture_t rightEyeTexture = { (void*)rightEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 	}
 
@@ -156,7 +156,7 @@ glm::mat4x4 ofxOpenVR::getHMDMatrixProjectionEye(vr::Hmd_Eye nEye)
 	if (!_pHMD)
 		return glm::mat4x4();
 
-	vr::HmdMatrix44_t mat = _pHMD->GetProjectionMatrix(nEye, _fNearClip, _fFarClip, vr::API_OpenGL);
+	vr::HmdMatrix44_t mat = _pHMD->GetProjectionMatrix(nEye, _fNearClip, _fFarClip);
 
 	return glm::mat4x4(
 		mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
@@ -606,7 +606,8 @@ void ofxOpenVR::setupDistortion()
 			u = x*w; v = 1 - y*h;
 			vert.position = glm::vec2(Xoffset + u, -1 + 2 * y*h);
 
-			vr::DistortionCoordinates_t dc0 = _pHMD->ComputeDistortion(vr::Eye_Left, u, v);
+			vr::DistortionCoordinates_t dc0;
+			_pHMD->ComputeDistortion(vr::Eye_Left, u, v, &dc0);
 
 			vert.texCoordRed = glm::vec2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
 			vert.texCoordGreen = glm::vec2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
@@ -625,7 +626,8 @@ void ofxOpenVR::setupDistortion()
 			u = x*w; v = 1 - y*h;
 			vert.position = glm::vec2(Xoffset + u, -1 + 2 * y*h);
 
-			vr::DistortionCoordinates_t dc0 = _pHMD->ComputeDistortion(vr::Eye_Right, u, v);
+			vr::DistortionCoordinates_t dc0;
+			_pHMD->ComputeDistortion(vr::Eye_Right, u, v, &dc0);
 
 			vert.texCoordRed = glm::vec2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
 			vert.texCoordGreen = glm::vec2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
@@ -775,8 +777,8 @@ void ofxOpenVR::updateDevicesMatrixPose()
 					_strPoseClassesOSS << "Invalid Device Class" << endl;
 					break;
 
-				case vr::TrackedDeviceClass_Other:
-					_strPoseClassesOSS << "Other Device Class" << endl;
+				case vr::TrackedDeviceClass_GenericTracker:
+					_strPoseClassesOSS << "Generic trackers, similar to controllers" << endl;
 					break;
 
 				case vr::TrackedDeviceClass_TrackingReference:
@@ -853,7 +855,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 
 			// Get extra data about the controller.
 			vr::VRControllerState_t pControllerState;
-			vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &pControllerState);
+			vr::VRSystem()->GetControllerState(event.trackedDeviceIndex, &pControllerState, sizeof(pControllerState));
 
 			_args.analogInput_xAxis = -1;
 			_args.analogInput_yAxis = -1;
@@ -930,7 +932,7 @@ void ofxOpenVR::processVREvent(const vr::VREvent_t & event)
 		case vr::TrackedDeviceClass_Invalid:
 			break;
 
-		case vr::TrackedDeviceClass_Other:
+		case vr::TrackedDeviceClass_GenericTracker:
 			break;
 
 		case vr::TrackedDeviceClass_TrackingReference:
