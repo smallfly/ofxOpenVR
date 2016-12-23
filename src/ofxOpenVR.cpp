@@ -1100,7 +1100,7 @@ void ofxOpenVR::renderScene(vr::Hmd_Eye nEye)
 				continue;
 			}
 				
-			glm::mat4x4 matMVP = _rmat4DevicePose[unTrackedDevice] * getCurrentViewProjectionMatrix(nEye);
+			glm::mat4x4 matMVP = getCurrentViewProjectionMatrix(nEye) * _rmat4DevicePose[unTrackedDevice];
 
 			_renderModelsShader.setUniformMatrix4f("matrix", matMVP, 1);
 			_rTrackedDeviceToRenderModel[unTrackedDevice]->Draw();
