@@ -134,9 +134,9 @@ void ofxOpenVR::render()
 	{
 		renderStereoTargets(); 
 
-		vr::Texture_t leftEyeTexture = { (void*)leftEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+		vr::Texture_t leftEyeTexture = { (void*)(uintptr_t)leftEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-		vr::Texture_t rightEyeTexture = { (void*)rightEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
+		vr::Texture_t rightEyeTexture = { (void*)(uintptr_t)rightEyeDesc._nResolveTextureId, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 	}
 
