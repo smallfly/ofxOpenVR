@@ -9,5 +9,5 @@ Implementation of Valve Software's [OpenVR](https://github.com/ValveSoftware/ope
 2. In `Property Manager` (open it from `View -> Other Windows -> Property Manager`), right click on your project to select `Add Existing Property Sheet...` and select the `ofxOpenVR.props` file.
 
 ## Notes
-Tested with the HTC Vive Pre and the Oculus consumer version on Windows 10.
+Tested with the HTC Vive and the Oculus Rift (consumer version) on Windows 10.
 
